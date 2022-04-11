@@ -3,8 +3,9 @@ from math import sqrt
 from argparse import ArgumentParser
 from board import Board
 
-def run_game(board, hexagon_size, start_row):
+def run_game(board, hexagon_size, start_row, surface):
     clock = pygame.time.Clock()
+    font = pygame.font.SysFont('helvetica', 20)
     col = "r"
     run = True
     while run:
@@ -19,21 +20,35 @@ def run_game(board, hexagon_size, start_row):
                     for j, hexagon in enumerate(row):
                         if hexagon.collidepoint(pos):
                             print(f"{i=}, {j=}")
-                            if not board.make_move(i, j, col):
+                            new_board = board.make_move(i, j, col)
+                            if not new_board:
                                 break
-                            if col == "r":
-                                col = "b"
-                            else:
-                                col = "r"
+                            board = new_board
+                            col = switch_colours(col)
                             found = True
                             break
                     if found:
                         break
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_u and board.prev_board is not None:
+                    print("here")
+                    board = board.undo_move()
+                    col = switch_colours(col)
         
+        surface.fill((255, 255, 255))
+        hexagons = board.draw(hexagon_size, start_row, surface)
+        if board.win("b"):
+            text_surface = font.render("gamestate: blue wins!", False, (0, 0, 255))
+        elif board.win("r"):
+            text_surface = font.render("gamestate: red wins!", False, (255, 0, 0))
+        else:
+            text_surface = font.render(f"gamestate: {col} to play", False, (0, 0, 0))
+        surface.blit(text_surface, (50, 50))
 
-        window.fill((255, 255, 255))
-        hexagons = board.draw(hexagon_size, start_row, window)
         pygame.display.update()
+
+def switch_colours(col):
+    return "r" if col == "b" else "b"
 
 def main():
     parser = ArgumentParser()
@@ -42,19 +57,22 @@ def main():
                         help="display the chosen path on the board with info")
     args = parser.parse_args()
 
+    # initialise pygame stuff
+    WIDTH, HEIGHT = 1000, 1000
+    window = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Cachex")
+    pygame.font.init()
     
     # size is the length from centre to any point and the side length
-    hexagon_size = 20 * (WIDTH - 100) / (args.n * (20 * sqrt(3) + 19) - 19)
+    hexagon_size = 20 #* (WIDTH - 100) / (args.n * (20 * sqrt(3) + 19) - 19)
     start_row = [100, HEIGHT - 200]
     board = Board(args.n)
-    run_game(board, hexagon_size, start_row)
+
+    run_game(board, hexagon_size, start_row, window)
 
     pygame.quit()
 
 
 if __name__ == '__main__':
-    WIDTH, HEIGHT = 1000, 1000
-    window = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Cachex")
 
     main()

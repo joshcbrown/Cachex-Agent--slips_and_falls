@@ -31,7 +31,6 @@ def run_game(board, hexagon_size, start_row, surface):
                         break
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_u and board.prev_board is not None:
-                    print("here")
                     board = board.undo_move()
                     col = switch_colours(col)
         
@@ -64,8 +63,8 @@ def main():
     pygame.font.init()
     
     # size is the length from centre to any point and the side length
-    hexagon_size = 20 #* (WIDTH - 100) / (args.n * (20 * sqrt(3) + 19) - 19)
-    start_row = [100, HEIGHT - 200]
+    hexagon_size = 1600 / (sqrt(3) * (3 * args.n - 1))
+    start_row = [100, HEIGHT - 100]
     board = Board(args.n)
 
     run_game(board, hexagon_size, start_row, window)
@@ -74,5 +73,4 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()

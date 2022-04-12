@@ -39,15 +39,13 @@ class Board():
             start_row[1] -= hexagon_size * 1.5 + hexagon_size / 5
         return hexagons
 
-    def make_move(self, y, x, col):
+    def attempt_move(self, y, x, col):
         if (y, x) in self.board_dict:
             return None
         new_board_dict = self.board_dict.copy()
         new_board_dict[(y, x)] = col
         new_board = Board(self.n, new_board_dict, self)
-        print(win(new_board, "b"))
-        print(win(new_board, "r"))
-        return Board(self.n, new_board_dict, self)
+        return new_board
     
     def undo_move(self):
         assert self.prev_board is not None
@@ -60,13 +58,12 @@ def win(board, col):
     not_visited = {(y, x) for (y, x), tile_col in board.board_dict.items() if tile_col == col}
     # define win condition as: red making vertical line, blue making horizontal line
 
-
     if col == "b":
-        side1_func = lambda y, x: x == 0
-        side2_func = lambda y, x: x == board.n - 1
+        side1_func = lambda _, x: x == 0
+        side2_func = lambda _, x: x == board.n - 1
     elif col == "r":
-        side1_func = lambda y, x: y == 0
-        side2_func = lambda y, x: y == board.n - 1
+        side1_func = lambda y, _: y == 0
+        side2_func = lambda y, _: y == board.n - 1
 
     # perform dfs
     while len(not_visited) != 0:

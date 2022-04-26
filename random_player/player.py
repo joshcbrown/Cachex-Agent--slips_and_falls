@@ -24,6 +24,7 @@ class Player:
         of the game, select an action to play.
         """
         choices = get_possible_moves(self.tracking_board)
+        print(choices)
         idx = random.choice(len(choices))
         return choices[idx]
     

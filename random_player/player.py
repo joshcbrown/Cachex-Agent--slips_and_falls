@@ -1,7 +1,9 @@
 from referee.board import Board
 from utils.tracking_board import TrackingBoard
-from utils.player_logic import get_possible_moves, evaluate
+#from utils.player_logic import evaluate
 from numpy import random
+
+_ACTION_PLACE = "PLACE"
 
 class Player:
     def __init__(self, player, n):
@@ -23,10 +25,12 @@ class Player:
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
-        choices = get_possible_moves(self.tracking_board)
-        print(choices)
-        idx = random.choice(len(choices))
-        return choices[idx]
+        idx = random.choice(len(self.tracking_board.possible_moves))
+        choice = list(self.tracking_board.possible_moves)[idx]
+        if isinstance(choice, str):
+            return choice,
+        else:
+            return _ACTION_PLACE, int(choice[0]), int(choice[1])
     
     def turn(self, player, action):
         """
@@ -39,4 +43,7 @@ class Player:
         the same as what your player returned from the action method
         above. However, the referee has validated it at this point.
         """
+        self.tracking_board.update(player, action)
+        # ensure undo+redo has no effect
+        self.tracking_board.undo_last_move()
         self.tracking_board.update(player, action)

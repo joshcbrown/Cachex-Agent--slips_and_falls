@@ -1,18 +1,4 @@
-from referee import board
-
-def get_possible_moves(board):
-    # TODO: numpy way
-    moves = [
-        ("PLACE", r, q)
-        for r in range(board.n) 
-        for q in range(board.n)
-        if not board.is_occupied((r, q))
-    ]
-    if len(moves) == board.n ** 2 - 1:
-        moves.append(("STEAL",))
-    return moves
-
-def evaluate(board):
+def evaluate(tracking_board):
     return 0
 
 def parse(action):

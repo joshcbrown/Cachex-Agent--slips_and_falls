@@ -234,6 +234,13 @@ def get_options():
         "all game actions in a text file named %(metavar)s "
         "(default: %(const)s).",
     )
+    optionals.add_argument(
+        "-T",
+        "--testing-rounds",
+        type=int,
+        default=0,
+        help=""
+    ) # TODO: help
 
     colour_group = optionals.add_mutually_exclusive_group()
     colour_group.add_argument(

@@ -9,6 +9,13 @@ from referee.player import PlayerWrapper
 from referee.player import ResourceLimitException, set_space_line
 from referee.options import get_options
 
+try:
+    # might not have pandas in running environment
+    from utils.test import test
+except ModuleNotFoundError:
+    pass
+
+
 def main():
     # Parse command-line options into a namespace for use throughout this
     # program
@@ -41,19 +48,24 @@ def main():
         set_space_line()
 
         # Play the game!
-        result = play(
-            [p1, p2],
-            n=options.n,
-            delay=options.delay,
-            print_state=(options.verbosity > 1),
-            use_debugboard=(options.verbosity > 2),
-            use_colour=options.use_colour,
-            use_unicode=options.use_unicode,
-            log_filename=options.logfile,
-        )
-        # Display the final result of the game to the user.
-        comment("game over!", depth=-1)
-        print(result)
+        if options.testing_rounds != 0:
+            options.verbosity = 0
+            test(options, p1, p2)
+
+        else:
+            result = play(
+                [p1, p2],
+                n=options.n,
+                delay=options.delay,
+                print_state=(options.verbosity > 1),
+                use_debugboard=(options.verbosity > 2),
+                use_colour=options.use_colour,
+                use_unicode=options.use_unicode,
+                log_filename=options.logfile,
+            )
+            # Display the final result of the game to the user.
+            comment("game over!", depth=-1)
+            print(result)
 
     # In case the game ends in an abnormal way, print a clean error
     # message for the user (rather than a trace).

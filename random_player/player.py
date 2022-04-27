@@ -15,7 +15,7 @@ class Player:
         play as Red, or the string "blue" if your player will play
         as Blue.
         """
-        random.seed(0)
+        # random.seed(0)
         self.player = player
         self.n = n
         self.tracking_board = TrackingBoard(player, n)

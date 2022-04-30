@@ -1,9 +1,9 @@
-from referee.board import Board
+from utils.player_logic import evaluate
 from utils.tracking_board import TrackingBoard
 from utils.player_logic import move_to_action
-from numpy import random
 
 _ACTION_PLACE = "PLACE"
+
 
 class Player:
     def __init__(self, player, n):
@@ -25,8 +25,7 @@ class Player:
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
-        idx = random.choice(len(self.tracking_board.possible_moves))
-        choice = list(self.tracking_board.possible_moves)[idx]
+        choice = self.tracking_board.get_greedy_move()
         # print(self.tracking_board.possible_moves)
         return move_to_action(choice)
 

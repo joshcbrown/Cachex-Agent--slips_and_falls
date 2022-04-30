@@ -11,7 +11,7 @@ def test(options, p1, p2):
         for i in range(options.testing_rounds):
             result = play(
                 [p1, p2],
-                n=options.n,
+                n=n,
                 delay=options.delay,
                 print_state=(options.verbosity > 1),
                 use_debugboard=(options.verbosity > 2),
@@ -24,7 +24,8 @@ def test(options, p1, p2):
             else:
                 red_wins[n - 3] += 1
     print(f"{red_wins=}\n{blue_wins=}")
-    df = pd.DataFrame(data={'red': red_wins, 'blue': blue_wins}, index=pd.Series(range(3, 16), name="n"))
+    df = pd.DataFrame(data={'red': red_wins, 'blue': blue_wins},
+                      index=pd.Series(range(3, 16), name="n"))
     df.to_csv(f'results-{datetime.now().strftime("%H:%M:%S")}.csv')
     print(df)
     print(f"blue acc: {df['blue'].sum() / (options.testing_rounds * 13)}"

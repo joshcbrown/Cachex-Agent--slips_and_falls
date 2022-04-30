@@ -1,5 +1,5 @@
 from referee.board import Board
-from utils.player_logic import parse
+from utils.player_logic import parse, action_to_move, move_to_action
 
 _ACTION_STEAL = "STEAL"
 _ACTION_PLACE = "PLACE"
@@ -20,15 +20,16 @@ class TrackingBoard(Board):
             self.centre = None
 
     def update(self, player, action):
-        atype, coord = parse(action)
-        if atype == _ACTION_STEAL:
+        move = action_to_move(action)
+        if len(self.move_history) == 1:
             self.possible_moves.remove(_ACTION_STEAL)
+        if move == _ACTION_STEAL:
             self.swap()
             last_captures = None
             self.possible_moves = {(r, p) for p, r in self.possible_moves}
-        elif atype == _ACTION_PLACE:
-            self.possible_moves.remove(coord)
-            last_captures = self.place(player, coord)
+        else:
+            self.possible_moves.remove(move)
+            last_captures = self.place(player, move)
             if len(last_captures) != 0:
                 for captured_coord in last_captures:
                     self.possible_moves.add(captured_coord)
@@ -36,16 +37,15 @@ class TrackingBoard(Board):
                 self.possible_moves.add(_ACTION_STEAL)
                 if self.centre is not None:
                     self.possible_moves.add(self.centre)
-            elif len(self.move_history) == 1:
-                self.possible_moves.remove(_ACTION_STEAL)
-        self.move_history.append((atype, coord, player, last_captures))
+        print(self.possible_moves)
+        self.move_history.append((move, player, last_captures))
 
     def undo_last_move(self):
-        atype, coord, player, last_captures = self.move_history.pop(-1)
-        if atype == _ACTION_STEAL:
+        move, player, last_captures = self.move_history.pop(-1)
+        if move == _ACTION_STEAL:
             self.unswap()
-        elif atype == _ACTION_PLACE:
-            self.unplace(coord, player, last_captures)
+        else:
+            self.unplace(move, player, last_captures)
 
     def unswap(self):
         self.swap()
@@ -65,3 +65,12 @@ class TrackingBoard(Board):
                 self.possible_moves.remove(self.centre)
         elif len(self.move_history) == 1:
             self.possible_moves.add(_ACTION_STEAL)
+
+    # def get_greedy_move(self):
+    #     return max(self.possible_moves, key=lambda move: self.evaluate_after_move(move))
+    #
+    # def evaluate_after_move(self, move):
+    #     self.update(move)
+    #     value = self.evaluate()
+    #     self.undo_last_move()
+    #     return value

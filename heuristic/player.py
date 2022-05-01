@@ -44,3 +44,5 @@ class Player:
         # ensure undo+redo has no effect
         self.tracking_board.undo_last_move()
         self.tracking_board.update(player, action)
+        print(f"{self.player}'s advantage:")
+        print(self.tracking_board.tile_advantage)

@@ -36,7 +36,6 @@ class Player:
             else:
                 print("invalid format 1")
                 continue
-            print(penis)
             next_action = move_to_action(next_move)
             atype, *aargs = next_action
             action_type = (atype, *(type(arg) for arg in aargs))

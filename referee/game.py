@@ -459,8 +459,11 @@ def _RENDER(
         # Note that j is equivalent to q in axial coordinates
         for j in range(board.n):
             coord = (board.n - i - 1, j)
-            color = value = f"{4-i}, {j}" if board[coord] == None else \
+            color = value = (
+                f"{coord[0]},{coord[1]}" 
+                if board[coord] == None else
                 (_RED_SYM if board[coord] == "red" else _BLUE_SYM)
+            )
             if use_debugboard:
                 if coord == game.last_coord:
                     value = _POINT_TO(value)

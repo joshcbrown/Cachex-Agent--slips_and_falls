@@ -150,10 +150,7 @@ _ACTION_STEAL = "STEAL"
 _ACTION_PLACE = "PLACE"
 
 # Action type validators
-_ACTION_TYPES = set([
-    (_ACTION_STEAL, ), 
-    (_ACTION_PLACE, int, int)
-])
+_ACTION_TYPES = {(_ACTION_STEAL,), (_ACTION_PLACE, int, int)}
 
 # Draw conditions
 _MAX_REPEAT_STATES = 7

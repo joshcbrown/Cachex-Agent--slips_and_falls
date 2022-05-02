@@ -1,4 +1,3 @@
-from utils.player_logic import evaluate
 from utils.tracking_board import TrackingBoard
 from utils.player_logic import move_to_action
 

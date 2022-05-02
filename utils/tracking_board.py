@@ -1,13 +1,9 @@
-from torch import long
 from referee.board import Board
-from utils.player_logic import parse, action_to_move, move_to_action
+from utils.helper_functions import parse, action_to_move, move_to_action
 from utils.heuristics import longest_branch
-
 _ACTION_STEAL = "STEAL"
 _ACTION_PLACE = "PLACE"
-
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
-
 
 class TrackingBoard(Board):
     def __init__(self, player, n):
@@ -17,16 +13,14 @@ class TrackingBoard(Board):
         self.move_history = []
         self.possible_moves = {(p, r) for p in range(n) for r in range(n)}
         self.tiles_captured = 0
-        self.start_squares = (
-            [(0, i) for i in range(n)] 
-            if player == "red" else 
-            [(i, 0) for i in range(n)]
-        )
-        self.end_squares = (
-            [(n-1, i) for i in range(n)] 
-            if player == "red" else 
-            [(i, n-1) for i in range(n)]
-        )
+        self.start_squares = {
+            "red": [(0, i) for i in range(n)],
+            "blue": [(i, 0) for i in range(n)]
+        }
+        self.end_squares = {
+            "red": [(n-1, i) for i in range(n)], 
+            "blue": [(i, n-1) for i in range(n)]
+        }
         if n % 2 == 1:
             self.centre = (n // 2, n // 2)
             self.possible_moves.remove(self.centre)
@@ -92,19 +86,14 @@ class TrackingBoard(Board):
         elif len(self.move_history) == 1:
             self.possible_moves.add(_ACTION_STEAL)
 
-    def get_greedy_move(self):
+    def get_greedy_move(self, evaluate):
         return max(
             list(self.possible_moves),
-            key=lambda move: self.evaluate_after_move(move)
+            key=lambda move: self.evaluate_after_move(move, evaluate)
         )
 
-    def evaluate(self):
-        from_start = longest_branch(self, self.player, from_start=True)
-        from_end = longest_branch(self, self.player, from_start=False)
-        return self.tiles_captured + from_start + from_end
-
-    def evaluate_after_move(self, move):
+    def evaluate_after_move(self, move, evaluate):
         self.update(self.player, move_to_action(move))
-        value = self.evaluate()
+        value = evaluate()
         self.undo_last_move()
         return value

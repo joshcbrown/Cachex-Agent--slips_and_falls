@@ -1,5 +1,5 @@
 from utils.tracking_board import TrackingBoard
-from utils.player_logic import move_to_action
+from utils.helper_functions import move_to_action
 
 _ACTION_PLACE = "PLACE"
 _ACTION_STEAL = "STEAL"

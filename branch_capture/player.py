@@ -1,8 +1,7 @@
 from utils.tracking_board import TrackingBoard
-from utils.player_logic import move_to_action
-
+from utils.helper_functions import move_to_action
+from utils.heuristics import edge_branch_advantage
 _ACTION_PLACE = "PLACE"
-
 
 class Player:
     def __init__(self, player, n):
@@ -18,14 +17,19 @@ class Player:
         self.player = player
         self.n = n
         self.tracking_board = TrackingBoard(player, n)
+        
+    def evaluate(self):
+        return (
+            self.tracking_board.tiles_captured / 3 +
+            edge_branch_advantage(self.tracking_board, self.player)
+        )
 
     def action(self):
         """
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
-        choice = self.tracking_board.get_greedy_move()
-        # print(self.tracking_board.possible_moves)
+        choice = self.tracking_board.get_greedy_move(self.evaluate)
         return move_to_action(choice)
 
     def turn(self, player, action):
@@ -43,5 +47,3 @@ class Player:
         # ensure undo+redo has no effect
         self.tracking_board.undo_last_move()
         self.tracking_board.update(player, action)
-        print(f"{self.player}'s captures:")
-        print(self.tracking_board.tiles_captured)

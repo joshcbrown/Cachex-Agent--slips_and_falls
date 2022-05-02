@@ -1,4 +1,4 @@
-NEIGHBOUR_OFFSETS = (
+_NEIGHBOUR_OFFSETS = (
     (0, 1),
     (0, -1),
     (1, 0),
@@ -6,9 +6,24 @@ NEIGHBOUR_OFFSETS = (
     (1, -1),
     (-1, 1)
 )
+_OPPONENT = {"red": "blue", "blue": "red", None: None}
+
+def edge_branch_advantage(tracking_board, player):
+    return (
+        longest_branch(tracking_board, player, from_start=True) +
+        longest_branch(tracking_board, player, from_start=False) -
+        longest_branch(tracking_board, _OPPONENT[player], from_start=True) -
+        longest_branch(tracking_board, _OPPONENT[player], from_start=False)
+    )
+
+def capture_advantage(tracking_board):
+    return tracking_board.tiles_captured
 
 def longest_branch(tracking_board, player, from_start):
-    edge_squares = tracking_board.start_squares if from_start else tracking_board.end_squares
+    if from_start:
+        edge_squares = tracking_board.start_squares[player] 
+    else:
+        edge_squares = tracking_board.end_squares[player]
     q = [coord for coord in edge_squares if tracking_board[coord] == player]
     seen = set(q)
     longest = 0
@@ -24,7 +39,7 @@ def longest_branch(tracking_board, player, from_start):
 
 def _get_neighbours(coord, tracking_board, player, seen):
         neighbours = []
-        for x, y in NEIGHBOUR_OFFSETS:
+        for x, y in _NEIGHBOUR_OFFSETS:
             new_x = coord[0] + x
             new_y = coord[1] + y
             new_coord = (new_x, new_y)

@@ -16,9 +16,6 @@ def edge_branch_advantage(tracking_board, player):
         longest_branch(tracking_board, _OPPONENT[player], from_start=False)
     )
 
-def capture_advantage(tracking_board):
-    return tracking_board.tiles_captured
-
 def longest_branch(tracking_board, player, from_start):
     if from_start:
         edge_squares = tracking_board.start_squares[player] 

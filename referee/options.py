@@ -199,6 +199,12 @@ def get_options():
         const=TIME_LIMIT_NOVALUE,
         help="limit on CPU time (float, seconds) for each player.",
     )
+    optionals.add_argument(
+        "--test-all",
+        action="store_true",
+        default=False,
+        help="run simulation on all valid board sizes.",
+    )
 
     verbosity_group = optionals.add_mutually_exclusive_group()
     verbosity_group.add_argument(

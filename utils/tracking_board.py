@@ -1,3 +1,4 @@
+import numpy as np
 from referee.board import Board
 from utils.helper_functions import parse, action_to_move, move_to_action
 from utils.heuristics import longest_branch
@@ -31,7 +32,8 @@ class TrackingBoard(Board):
         move = action_to_move(action)
         # print(f"before: {self.possible_moves}")
         if move == _ACTION_STEAL:
-            last_captures = self._swap(player)
+            self._swap(player)
+            last_captures = None
         else:
             last_captures = self._place(player, move)
         # print(f"after: {self.possible_moves}")
@@ -87,8 +89,10 @@ class TrackingBoard(Board):
             self.possible_moves.add(_ACTION_STEAL)
 
     def get_greedy_move(self, evaluate):
+        moves = list(self.possible_moves)
+        np.random.shuffle(moves)
         return max(
-            list(self.possible_moves),
+            moves,
             key=lambda move: self.evaluate_after_move(move, evaluate)
         )
 

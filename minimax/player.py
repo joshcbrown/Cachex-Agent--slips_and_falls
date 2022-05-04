@@ -1,6 +1,5 @@
-from utils.heuristics import best_heuristic
 from utils.template_player import TemplatePlayer
-
+from utils.heuristics import best_heuristic
 _ACTION_PLACE = "PLACE"
 
 
@@ -14,7 +13,7 @@ class Player(TemplatePlayer):
         play as Red, or the string "blue" if your player will play
         as Blue.
         """
-        super().__init__(player, n, True)
+        super().__init__(player, n)
 
     def evaluate(self):
         return best_heuristic(self.tracking_board, self.player)

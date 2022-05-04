@@ -49,4 +49,8 @@ def _get_neighbours(coord, tracking_board, player, seen):
                 seen.add(new_coord)
         return neighbours
 
-            
+def best_heuristic(tracking_board, player):
+    return (
+            tracking_board.tiles_captured +
+            edge_branch_advantage(tracking_board, player)
+    )

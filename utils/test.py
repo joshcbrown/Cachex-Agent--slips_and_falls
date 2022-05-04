@@ -16,7 +16,7 @@ def test(options, p1, p2):
     p2_red_wins = np.zeros(num_sizes, dtype=np.int)
     p1_blue_wins = np.zeros(num_sizes, dtype=np.int)
     for row, n in enumerate(board_sizes):
-        for i in range(options.testing_rounds):
+        for i in trange(options.testing_rounds):
             result1 = play(
                 [p1, p2],
                 n=n,
@@ -58,5 +58,5 @@ def test(options, p1, p2):
     )
     df.to_csv(f'{options.player1_loc[0]}_vs_{options.player2_loc[0]}_{datetime.now().strftime("%H:%M:%S")}.csv')
     print(df)
-    print(f"p1 acc: {df[f'total_{options.player1_loc[0]}'].sum() / (2 * options.testing_rounds * num_sizes)}\n"
-          f"p2 acc: {df[f'total_{options.player2_loc[0]}'].sum() / (2 * options.testing_rounds * num_sizes)}")
+    print(f"{options.player1_loc[0]} acc: {df[f'total_{options.player1_loc[0]}'].sum() / (2 * options.testing_rounds * num_sizes)}\n"
+          f"{options.player2_loc[0]} acc: {df[f'total_{options.player2_loc[0]}'].sum() / (2 * options.testing_rounds * num_sizes)}")

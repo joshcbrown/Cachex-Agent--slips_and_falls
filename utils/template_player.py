@@ -6,7 +6,7 @@ from random import randint
 _ACTION_PLACE = "PLACE"
 
 class TemplatePlayer:
-    def __init__(self, player, n):
+    def __init__(self, player, n, is_greedy: bool):
         """
         Called once at the beginning of a game to initialise this player.
         Set up an internal representation of the game state.
@@ -19,6 +19,10 @@ class TemplatePlayer:
         self.player = player
         self.n = n
         self.tracking_board = TrackingBoard(player, n)
+        if is_greedy:
+            self.get_move = self.tracking_board.get_greedy_move
+        else:
+            self.get_move = self.tracking_board.get_minimax_move
     
     def evaluate(self):
         return randint(0, 1e6)
@@ -28,7 +32,7 @@ class TemplatePlayer:
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
-        choice = self.tracking_board.get_greedy_move(self.evaluate)
+        choice = self.get_move(self.evaluate)
         return move_to_action(choice)
 
     def turn(self, player, action):

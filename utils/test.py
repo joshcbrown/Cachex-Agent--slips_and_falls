@@ -15,7 +15,7 @@ def test(options, p1, p2):
     p2_blue_wins = np.zeros(num_sizes, dtype=np.int)
     p2_red_wins = np.zeros(num_sizes, dtype=np.int)
     p1_blue_wins = np.zeros(num_sizes, dtype=np.int)
-    for n in board_sizes:
+    for row, n in enumerate(board_sizes):
         for i in range(options.testing_rounds):
             result1 = play(
                 [p1, p2],
@@ -38,25 +38,25 @@ def test(options, p1, p2):
                 log_filename=options.logfile,
             )
             if result1 == "winner: blue":
-                p2_blue_wins[n - 3] += 1
+                p2_blue_wins[row] += 1
             else:
-                p1_red_wins[n - 3] += 1
+                p1_red_wins[row] += 1
             if result2 == "winner: blue":
-                p1_blue_wins[n - 3] += 1
+                p1_blue_wins[row] += 1
             else:
-                p2_red_wins[n - 3] += 1
+                p2_red_wins[row] += 1
     df = pd.DataFrame(
         data={
-            'red_1': p1_red_wins, 
-            'blue_1': p1_blue_wins, 
-            'red_2': p2_red_wins, 
-            'blue_2': p2_blue_wins,
-            'total_1': p1_red_wins + p1_blue_wins,
-            'total_2': p2_red_wins + p2_blue_wins
+            f'red_{options.player1_loc[0]}': p1_red_wins,
+            f'blue_{options.player1_loc[0]}': p1_blue_wins,
+            f'red_{options.player2_loc[0]}': p2_red_wins,
+            f'blue_{options.player2_loc[0]}': p2_blue_wins,
+            f'total_{options.player1_loc[0]}': p1_red_wins + p1_blue_wins,
+            f'total_{options.player2_loc[0]}': p2_red_wins + p2_blue_wins
         },
         index=pd.Series(board_sizes, name="n")
     )
-    df.to_csv(f'results-{datetime.now().strftime("%H:%M:%S")}.csv')
+    df.to_csv(f'{options.player1_loc[0]}_vs_{options.player2_loc[0]}_{datetime.now().strftime("%H:%M:%S")}.csv')
     print(df)
-    print(f"p1 acc: {df['total_1'].sum() / (2 * options.testing_rounds * num_sizes)}\n"
-          f"p2 acc: {df['total_2'].sum() / (2 * options.testing_rounds * num_sizes)}")
+    print(f"p1 acc: {df[f'total_{options.player1_loc[0]}'].sum() / (2 * options.testing_rounds * num_sizes)}\n"
+          f"p2 acc: {df[f'total_{options.player2_loc[0]}'].sum() / (2 * options.testing_rounds * num_sizes)}")

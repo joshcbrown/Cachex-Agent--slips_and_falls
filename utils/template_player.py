@@ -1,9 +1,9 @@
-from tkinter.tix import INTEGER
 from utils.tracking_board import TrackingBoard
 from utils.helper_functions import move_to_action
 from random import randint
 
 _ACTION_PLACE = "PLACE"
+
 
 class TemplatePlayer:
     def __init__(self, player, n, is_greedy: bool):
@@ -18,21 +18,21 @@ class TemplatePlayer:
         # random.seed(0)
         self.player = player
         self.n = n
-        self.tracking_board = TrackingBoard(player, n)
+        self.tracking_board = TrackingBoard(player, self.evaluate, n)
         if is_greedy:
             self.get_move = self.tracking_board.get_greedy_move
         else:
-            self.get_move = self.tracking_board.get_minimax_move
-    
-    def evaluate(self):
+            self.get_move = self.tracking_board.get_negamax_move
+
+    def evaluate(self, player):
         return randint(0, 1e6)
-        
+
     def action(self):
         """
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
-        choice = self.get_move(self.evaluate)
+        choice = self.get_move()
         return move_to_action(choice)
 
     def turn(self, player, action):

@@ -16,5 +16,5 @@ class Player(TemplatePlayer):
         """
         super().__init__(player, n, True)
 
-    def evaluate(self):
-        return best_heuristic(self.tracking_board, self.player)
+    def evaluate(self, player):
+        return best_heuristic(self.tracking_board, player)

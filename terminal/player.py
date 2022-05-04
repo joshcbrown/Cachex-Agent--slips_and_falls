@@ -19,7 +19,7 @@ class Player:
         # random.seed(0)
         self.player = player
         self.n = n
-        self.tracking_board = TrackingBoard(player, n)
+        self.tracking_board = TrackingBoard(player, None, n)
 
     def action(self):
         """
@@ -27,12 +27,12 @@ class Player:
         of the game, select an action to play.
         """
         while True:
-            next_move_input = input("put yo shit in:\n")
-            penis = next_move_input.split()
-            if len(penis) == 1:
+            next_move_input = input("put yo shit in e.g. '1 3':\n")
+            input = next_move_input.split()
+            if len(input) == 1:
                 next_move = next_move_input
-            elif len(penis) == 2:
-                next_move = penis
+            elif len(input) == 2:
+                next_move = input
             else:
                 print("invalid format 1")
                 continue

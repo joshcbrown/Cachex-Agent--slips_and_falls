@@ -211,6 +211,12 @@ def get_options():
         default=False,
         help="run simulation on small valid board sizes.",
     )
+    optionals.add_argument(
+        "--test-range",
+        metavar=("LOWER", "UPPER"),
+        default=(3, 18),
+        help="run simulation on board sizes in range specified by upper and lower bounds. bounds are inclusive"
+    )
 
     verbosity_group = optionals.add_mutually_exclusive_group()
     verbosity_group.add_argument(

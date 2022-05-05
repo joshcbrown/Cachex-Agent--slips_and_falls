@@ -8,6 +8,7 @@ _ACTION_PLACE = "PLACE"
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
 _WIN_VALUE = 1000000
 
+
 class TrackingBoard(Board):
     def __init__(self, player, evaluate, n):
         super().__init__(n)
@@ -104,6 +105,7 @@ class TrackingBoard(Board):
         np.random.shuffle(moves)
         best_move = best_move_val = best_children = None
         for move in moves:
+            # print(f"{self.player} first move: {move}")
             value, children = self.evaluate_negamax(move)
             if best_move is None or value > best_move_val:
                 best_move = move
@@ -112,6 +114,7 @@ class TrackingBoard(Board):
             if best_move_val == _WIN_VALUE:
                 break
         print(best_children)
+        # exit()
         return best_move
 
     def evaluate_negamax(self, move):
@@ -131,11 +134,13 @@ class TrackingBoard(Board):
     def negamax(self, depth: int, player):
         # TODO: investigate negamax not finding steal as best move for opposition
         if depth == 0 or self.game_over():
+            # print(f"{depth=}, {self._data}, {self.evaluate(player)}")
             return self.evaluate(player), []
         best_value = None
         children = []
         for move in list(self.possible_moves):
             self.update(player, move_to_action(move))
+            # print(f"{player=}, {move=}, {self._data}\n")
             neg_node_value, potential_children = self.negamax(depth - 1, _OPPONENT[player])
             node_value = -neg_node_value
             if best_value is None or node_value > best_value:

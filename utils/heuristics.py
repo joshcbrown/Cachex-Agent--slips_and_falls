@@ -9,6 +9,7 @@ _NEIGHBOUR_OFFSETS = (
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
 _WIN_VALUE = 10000000
 
+
 def branch_advantage(tracking_board, player):
     us = longest_branch(tracking_board, player, from_start=True)
     them = longest_branch(tracking_board, _OPPONENT[player], from_start=True)
@@ -63,7 +64,9 @@ def best_heuristic(tracking_board, player):
     branch_adv = branch_advantage(tracking_board, player)
     if branch_adv == _WIN_VALUE:
         return _WIN_VALUE
+    capture_advantage = (tracking_board.tiles_captured if player == tracking_board.player
+                         else - tracking_board.tiles_captured)
     return (
-        tracking_board.tiles_captured +
-        branch_adv * 2 / tracking_board.n
+        capture_advantage +
+        branch_adv
     )

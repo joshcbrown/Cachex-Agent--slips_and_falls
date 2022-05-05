@@ -71,5 +71,4 @@ def save_results(options, board_sizes, csv_str, p1_red_wins, p1_blue_wins, p2_re
         index=pd.Series(board_sizes, name="n")
     )
     df.to_csv(csv_str)
-    num_sizes = len(p1_red_wins)
     return df

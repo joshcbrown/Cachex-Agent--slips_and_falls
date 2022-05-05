@@ -56,6 +56,12 @@ class TrackingBoard(Board):
         self.possible_moves = {(r, p) for p, r in self.possible_moves}
         self.tiles_captured += (1 if player == self.player else -1)
 
+    def unswap(self, player):
+        self.swap()
+        self.possible_moves = {(r, p) for p, r in self.possible_moves}
+        self.possible_moves.add(_ACTION_STEAL)
+        self.tiles_captured -= (1 if player == self.player else -1)
+
     def _place(self, player, move):
         self.possible_moves.remove(move)
         last_captures = self.place(player, move)
@@ -70,12 +76,6 @@ class TrackingBoard(Board):
         elif len(self.move_history) == 1:
             self.possible_moves.remove(_ACTION_STEAL)
         return last_captures
-
-    def unswap(self, player):
-        self.swap()
-        self.possible_moves = {(r, p) for p, r in self.possible_moves}
-        self.possible_moves.add(_ACTION_STEAL)
-        self.tiles_captured -= (1 if player == self.player else -1)
 
     def unplace(self, coord, player, last_captures):
         self[coord] = None
@@ -137,7 +137,10 @@ class TrackingBoard(Board):
             return self.evaluate(player), []
         best_value = None
         children = []
-        for move in list(self.possible_moves):
+        for move in self.possible_moves:
+            if move == _ACTION_STEAL:
+                original = self.possible_moves
+                self.possible_moves = self.possible_moves.copy()
             self.update(player, move_to_action(move))
             # print(f"{player=}, {move=}, {self._data}\n")
             neg_node_value, potential_children = self.negamax(depth - 1, _OPPONENT[player])
@@ -147,6 +150,9 @@ class TrackingBoard(Board):
                 children = potential_children
                 children.append(f"{player}:{move}")
             self.undo_last_move()
+            if move == _ACTION_STEAL:
+                assert original == self.possible_moves
+                self.possible_moves = original
         return best_value, children
 
     def game_over(self):

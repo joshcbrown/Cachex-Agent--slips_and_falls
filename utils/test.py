@@ -8,6 +8,8 @@ from datetime import datetime
 def test(options, p1, p2):
     if options.test_all:
         board_sizes = trange(3, 16)
+    elif options.test_small:
+        board_sizes = trange(3, 9)
     else:
         board_sizes = range(options.n, options.n + 1)
     num_sizes = len(board_sizes)
@@ -47,16 +49,16 @@ def test(options, p1, p2):
                 p2_red_wins[row] += 1
     df = pd.DataFrame(
         data={
-            f'red_{options.player1_loc[0]}': p1_red_wins,
-            f'blue_{options.player1_loc[0]}': p1_blue_wins,
-            f'red_{options.player2_loc[0]}': p2_red_wins,
-            f'blue_{options.player2_loc[0]}': p2_blue_wins,
-            f'total_{options.player1_loc[0]}': p1_red_wins + p1_blue_wins,
-            f'total_{options.player2_loc[0]}': p2_red_wins + p2_blue_wins
+            f'red_{options.player1_loc[0]}1': p1_red_wins,
+            f'blue_{options.player1_loc[0]}1': p1_blue_wins,
+            f'red_{options.player2_loc[0]}2': p2_red_wins,
+            f'blue_{options.player2_loc[0]}2': p2_blue_wins,
+            f'total_{options.player1_loc[0]}1': p1_red_wins + p1_blue_wins,
+            f'total_{options.player2_loc[0]}2': p2_red_wins + p2_blue_wins
         },
         index=pd.Series(board_sizes, name="n")
     )
     df.to_csv(f'{options.player1_loc[0]}_vs_{options.player2_loc[0]}_{datetime.now().strftime("%H:%M:%S")}.csv')
     print(df)
-    print(f"{options.player1_loc[0]} acc: {df[f'total_{options.player1_loc[0]}'].sum() / (2 * options.testing_rounds * num_sizes)}\n"
-          f"{options.player2_loc[0]} acc: {df[f'total_{options.player2_loc[0]}'].sum() / (2 * options.testing_rounds * num_sizes)}")
+    print(f"{options.player1_loc[0]} acc: {df[f'total_{options.player1_loc[0]}1'].sum() / (2 * options.testing_rounds * num_sizes)}\n"
+          f"{options.player2_loc[0]} acc: {df[f'total_{options.player2_loc[0]}2'].sum() / (2 * options.testing_rounds * num_sizes)}")

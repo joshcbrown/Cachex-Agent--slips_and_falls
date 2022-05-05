@@ -10,6 +10,9 @@ def test(options, p1, p2):
         board_sizes = trange(3, 16)
     elif options.test_small:
         board_sizes = trange(3, 9)
+    elif options.test_range:
+        lower, upper = [int(bound) for bound in options.test_range.split()]
+        board_sizes = trange(lower, upper + 1)
     else:
         board_sizes = range(options.n, options.n + 1)
     num_sizes = len(board_sizes)

@@ -137,6 +137,7 @@ class TrackingBoard(Board):
             return self.evaluate(player), []
         best_value = None
         children = []
+        # pas dpfoaisdf
         for move in list(self.possible_moves):
             self.update(player, move_to_action(move))
             # print(f"{player=}, {move=}, {self._data}\n")

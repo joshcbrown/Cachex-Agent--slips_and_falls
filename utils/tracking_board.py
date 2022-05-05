@@ -6,7 +6,7 @@ from utils.heuristics import longest_branch
 _ACTION_STEAL = "STEAL"
 _ACTION_PLACE = "PLACE"
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
-_WIN_VALUE = 1000000
+_WIN_VALUE = 10000000
 
 class TrackingBoard(Board):
     def __init__(self, player, evaluate, n):
@@ -111,7 +111,7 @@ class TrackingBoard(Board):
                 best_children = children
             if best_move_val == _WIN_VALUE:
                 break
-        print(best_children)
+        #print(best_children)
         return best_move
 
     def evaluate_negamax(self, move):

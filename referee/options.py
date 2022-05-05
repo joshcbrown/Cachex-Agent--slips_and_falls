@@ -209,7 +209,7 @@ def get_options():
         "--test-small",
         action="store_true",
         default=False,
-        help="run simulation on all valid board sizes.",
+        help="run simulation on small valid board sizes.",
     )
 
     verbosity_group = optionals.add_mutually_exclusive_group()

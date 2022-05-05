@@ -7,14 +7,20 @@ _NEIGHBOUR_OFFSETS = (
     (-1, 1)
 )
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
-
+_WIN_VALUE = 10000000
 
 def branch_advantage(tracking_board, player):
+    us = longest_branch(tracking_board, player, from_start=True)
+    them = longest_branch(tracking_board, _OPPONENT[player], from_start=True)
+    if us == tracking_board.n:
+        return _WIN_VALUE
+    elif them == tracking_board.n:
+        return -_WIN_VALUE
     return (
-            longest_branch(tracking_board, player, from_start=True) +
-            longest_branch(tracking_board, player, from_start=False) -
-            longest_branch(tracking_board, _OPPONENT[player], from_start=True) -
-            longest_branch(tracking_board, _OPPONENT[player], from_start=False)
+        us -
+        them +
+        longest_branch(tracking_board, player, from_start=False) -
+        longest_branch(tracking_board, _OPPONENT[player], from_start=False)
     )
 
 
@@ -54,7 +60,10 @@ def _get_neighbours(coord, tracking_board, player, seen):
 
 
 def best_heuristic(tracking_board, player):
+    branch_adv = branch_advantage(tracking_board, player)
+    if branch_adv == _WIN_VALUE:
+        return _WIN_VALUE
     return (
-            tracking_board.tiles_captured +
-            branch_advantage(tracking_board, player)
+        tracking_board.tiles_captured +
+        branch_adv * 2 / tracking_board.n
     )

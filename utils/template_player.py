@@ -1,6 +1,5 @@
 from utils.tracking_board import TrackingBoard
 from utils.helper_functions import move_to_action
-from random import randint
 
 _ACTION_PLACE = "PLACE"
 
@@ -15,7 +14,6 @@ class TemplatePlayer:
         play as Red, or the string "blue" if your player will play
         as Blue.
         """
-        # random.seed(0)
         self.player = player
         self.n = n
         self.tracking_board = TrackingBoard(player, self.evaluate, n)

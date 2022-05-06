@@ -6,12 +6,13 @@ from utils.heuristics import longest_branch
 _ACTION_STEAL = "STEAL"
 _ACTION_PLACE = "PLACE"
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
-_WIN_VALUE = 10000000
+_WIN_VALUE = 1e7
 
 
 class TrackingBoard(Board):
     def __init__(self, player, evaluate, n):
         super().__init__(n)
+        self.evaluations = 0
         self.player = player
         self.evaluate = evaluate
         self.n = n
@@ -94,15 +95,16 @@ class TrackingBoard(Board):
 
     def get_greedy_move(self):
         moves = list(self.possible_moves)
-        np.random.shuffle(moves)
+        # np.random.shuffle(moves)
         return max(
             moves,
             key=lambda move: self.evaluate_after_move(move)
         )
 
     def get_negamax_move(self):
+        self.evaluations = 0
         moves = list(self.possible_moves)
-        np.random.shuffle(moves)
+        # np.random.shuffle(moves)
         best_move = best_move_val = best_children = None
         for move in moves:
             # print(f"{self.player} first move: {move}")
@@ -113,12 +115,24 @@ class TrackingBoard(Board):
                 best_children = children
             if best_move_val == _WIN_VALUE:
                 break
-        #print(best_children)
+
+        print(best_move)
+        print(best_move_val)
+        print(best_children)
+        print(self.evaluations)
         return best_move
+
+    # def evaluate_negamax(self, move):
+    #     self.update(self.player, move_to_action(move))
+    #     neg_value, sequence = self.negamax(2, _OPPONENT[self.player])
+    #     sequence.append(f"{self.player}:{move}")
+    #     sequence.reverse()
+    #     self.undo_last_move()
+    #     return -neg_value, sequence
 
     def evaluate_negamax(self, move):
         self.update(self.player, move_to_action(move))
-        neg_value, sequence = self.negamax(2, _OPPONENT[self.player])
+        neg_value, sequence = self.alpha_beta(3, _OPPONENT[self.player], -_WIN_VALUE, _WIN_VALUE)
         sequence.append(f"{self.player}:{move}")
         sequence.reverse()
         self.undo_last_move()
@@ -133,6 +147,7 @@ class TrackingBoard(Board):
     def negamax(self, depth: int, player):
         # TODO: investigate negamax not finding steal as best move for opposition
         if depth == 0 or self.game_over():
+            self.evaluations += 1
             # print(f"{depth=}, {self._data}, {self.evaluate(player)}")
             return self.evaluate(player), []
         best_value = None
@@ -154,6 +169,33 @@ class TrackingBoard(Board):
                 assert original == self.possible_moves
                 self.possible_moves = original
         return best_value, children
+
+    def alpha_beta(self, depth: int, player, alpha: float, beta: float):
+        # TODO: investigate negamax not finding steal as best move for opposition
+        if depth == 0 or self.game_over():
+            # print(f"{depth=}, {self._data}, {self.evaluate(player)}")
+            self.evaluations += 1
+            return self.evaluate(player), []
+        children = []
+        for move in self.possible_moves:
+            if move == _ACTION_STEAL:
+                original = self.possible_moves
+                self.possible_moves = self.possible_moves.copy()
+            self.update(player, move_to_action(move))
+            # print(f"{player=}, {move=}, {self._data}\n")
+            neg_node_value, potential_children = self.alpha_beta(depth - 1, _OPPONENT[player], -beta, -alpha)
+            node_value = -neg_node_value
+            if node_value > alpha:
+                alpha = node_value
+                children = potential_children
+                children.append(f"{player}:{move}")
+            self.undo_last_move()
+            if move == _ACTION_STEAL:
+                assert original == self.possible_moves
+                self.possible_moves = original
+            if alpha >= beta:
+                break
+        return alpha, children
 
     def game_over(self):
         if longest_branch(self, self.player, from_start=True) == self.n:

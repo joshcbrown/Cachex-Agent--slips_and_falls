@@ -14,7 +14,7 @@ class Player(TemplatePlayer):
         play as Red, or the string "blue" if your player will play
         as Blue.
         """
-        super().__init__(player, n, True)
+        super().__init__(player, n, "greedy")
 
     def evaluate(self, player):
         return best_heuristic(self.tracking_board, player)

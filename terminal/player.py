@@ -28,11 +28,11 @@ class Player:
         """
         while True:
             next_move_input = input("put yo shit in e.g. '1 3':\n")
-            input = next_move_input.split()
-            if len(input) == 1:
+            dick = next_move_input.split()
+            if len(dick) == 1:
                 next_move = next_move_input
-            elif len(input) == 2:
-                next_move = input
+            elif len(dick) == 2:
+                next_move = dick
             else:
                 print("invalid format 1")
                 continue

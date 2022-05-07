@@ -12,10 +12,12 @@ _WIN_VALUE = 1e7
 class TrackingBoard(Board):
     def __init__(self, player, evaluate, n):
         super().__init__(n)
+        np.random.seed(0)
         self.evaluations = 0
         self.player = player
         self.evaluate = evaluate
         self.n = n
+        self.nm_depth = 2
         self.move_history = []
         self.possible_moves = {(p, r) for p in range(n) for r in range(n)}
         self.tiles_captured = 0
@@ -101,38 +103,32 @@ class TrackingBoard(Board):
             key=lambda move: self.evaluate_after_move(move)
         )
 
-    def get_negamax_move(self):
+    def get_negamax_move(self, prune=False):
         self.evaluations = 0
         moves = list(self.possible_moves)
         # np.random.shuffle(moves)
         best_move = best_move_val = best_children = None
         for move in moves:
             # print(f"{self.player} first move: {move}")
-            value, children = self.evaluate_negamax(move)
+            value, children = self.evaluate_negamax(move, prune)
             if best_move is None or value > best_move_val:
                 best_move = move
                 best_move_val = value
                 best_children = children
             if best_move_val == _WIN_VALUE:
                 break
-
         print(best_move)
         print(best_move_val)
         print(best_children)
         print(self.evaluations)
         return best_move
 
-    # def evaluate_negamax(self, move):
-    #     self.update(self.player, move_to_action(move))
-    #     neg_value, sequence = self.negamax(2, _OPPONENT[self.player])
-    #     sequence.append(f"{self.player}:{move}")
-    #     sequence.reverse()
-    #     self.undo_last_move()
-    #     return -neg_value, sequence
-
-    def evaluate_negamax(self, move):
+    def evaluate_negamax(self, move, prune):
         self.update(self.player, move_to_action(move))
-        neg_value, sequence = self.alpha_beta(3, _OPPONENT[self.player], -_WIN_VALUE, _WIN_VALUE)
+        if prune:
+            neg_value, sequence = self.alpha_beta(self.nm_depth, _OPPONENT[self.player], -_WIN_VALUE, _WIN_VALUE)
+        else:
+            neg_value, sequence = self.negamax(self.nm_depth, _OPPONENT[self.player])
         sequence.append(f"{self.player}:{move}")
         sequence.reverse()
         self.undo_last_move()
@@ -204,3 +200,7 @@ class TrackingBoard(Board):
             return _OPPONENT[self.player]
         # TODO: worry about draws
         return None
+
+    # TODO: investigate following sequence of moves against alpha beta as red, board size 4 red, nm depth 2: red (1, 2),
+    #  blue: (1, 0), red: (3, 1), blue: (1, 1), red: (2, 2) (it thinks this is a win, very strange) blue: (0, 2),
+    #  red: (0, 1), blue: (0, 2), red: (1, 3) (misses win here but also thinks it wins with a non-winning move)

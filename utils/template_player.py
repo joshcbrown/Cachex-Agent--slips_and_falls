@@ -1,11 +1,13 @@
 from utils.tracking_board import TrackingBoard
 from utils.helper_functions import move_to_action
+from random import randint
+from functools import partial
 
 _ACTION_PLACE = "PLACE"
 
 
 class TemplatePlayer:
-    def __init__(self, player, n, is_greedy: bool):
+    def __init__(self, player, n, ptype: str):
         """
         Called once at the beginning of a game to initialise this player.
         Set up an internal representation of the game state.
@@ -17,13 +19,18 @@ class TemplatePlayer:
         self.player = player
         self.n = n
         self.tracking_board = TrackingBoard(player, self.evaluate, n)
-        if is_greedy:
+        if ptype == "greedy":
             self.get_move = self.tracking_board.get_greedy_move
+        elif ptype == "negamax":
+            self.get_move = partial(self.tracking_board.get_negamax_move, prune=False)
+        elif ptype == "ab":
+            self.get_move = partial(self.tracking_board.get_negamax_move, prune=True)
         else:
-            self.get_move = self.tracking_board.get_negamax_move
+            print(f"invalid player type: {ptype}")
+            exit()
 
     def evaluate(self, player):
-        return randint(0, 1e6)
+        return randint(0, int(1e6))
 
     def action(self):
         """

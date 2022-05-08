@@ -148,10 +148,9 @@ class TrackingBoard(Board):
             return self.evaluate(player), []
         best_value = None
         children = []
-        for move in self.possible_moves:
-            if move == _ACTION_STEAL:
-                original = self.possible_moves
-                self.possible_moves = self.possible_moves.copy()
+        original = self.possible_moves
+        self.possible_moves = original.copy()
+        for move in original:
             self.update(player, move_to_action(move))
             # print(f"{player=}, {move=}, {self._data}\n")
             neg_node_value, potential_children = self.negamax(depth - 1, _OPPONENT[player])
@@ -161,9 +160,7 @@ class TrackingBoard(Board):
                 children = potential_children
                 children.append(f"{player}:{move}")
             self.undo_last_move()
-            if move == _ACTION_STEAL:
-                assert original == self.possible_moves
-                self.possible_moves = original
+        self.possible_moves = original
         return best_value, children
 
     def alpha_beta(self, depth: int, player, alpha: float, beta: float):
@@ -173,10 +170,9 @@ class TrackingBoard(Board):
             self.evaluations += 1
             return self.evaluate(player), []
         children = []
-        for move in self.possible_moves:
-            if move == _ACTION_STEAL:
-                original = self.possible_moves
-                self.possible_moves = self.possible_moves.copy()
+        original = self.possible_moves
+        self.possible_moves = original.copy()
+        for move in original:
             self.update(player, move_to_action(move))
             # print(f"{player=}, {move=}, {self._data}\n")
             neg_node_value, potential_children = self.alpha_beta(depth - 1, _OPPONENT[player], -beta, -alpha)
@@ -186,11 +182,9 @@ class TrackingBoard(Board):
                 children = potential_children
                 children.append(f"{player}:{move}")
             self.undo_last_move()
-            if move == _ACTION_STEAL:
-                assert original == self.possible_moves
-                self.possible_moves = original
             if alpha >= beta:
                 break
+        self.possible_moves = original
         return alpha, children
 
     def game_over(self):

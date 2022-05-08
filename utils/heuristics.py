@@ -18,10 +18,10 @@ def branch_advantage(tracking_board, player):
     elif them == tracking_board.n:
         return -_WIN_VALUE
     return (
-        us -
-        them +
-        longest_branch(tracking_board, player, from_start=False) -
-        longest_branch(tracking_board, _OPPONENT[player], from_start=False)
+            us -
+            them +
+            longest_branch(tracking_board, player, from_start=False) -
+            longest_branch(tracking_board, _OPPONENT[player], from_start=False)
     )
 
 
@@ -69,6 +69,33 @@ def best_heuristic(tracking_board, player):
     capture_advantage = (tracking_board.tiles_captured if player == tracking_board.player
                          else - tracking_board.tiles_captured)
     return (
-        capture_advantage +
-        branch_adv
+            capture_advantage +
+            branch_adv
     )
+
+
+def centre_advantage(tracking_board, player):
+    n = tracking_board.n
+    if n % 2 == 0:
+        # four pieces in the centre
+        centre_tiles = [
+            (n // 2, n // 2),
+            (n // 2, n // 2 - 1),
+            (n // 2 - 1, n // 2),
+            (n // 2 - 1, n // 2 - 1)
+        ]
+    else:
+        centre = n // 2, n // 2
+        centre_tiles = [centre]
+        for x, y in _NEIGHBOUR_OFFSETS:
+            centre_tiles.append((centre[0] + x, centre[1] + y))
+    centre_player = 0
+    centre_opp = 0
+    for tile in centre_tiles:
+        centre_player += (1 if tracking_board[tile] == player else 0)
+        centre_opp += (1 if tracking_board[tile] == _OPPONENT[player] else 0)
+    return centre_player - centre_opp
+
+
+def new_heuristic(tracking_board, player):
+    return best_heuristic(tracking_board, player) + centre_advantage(tracking_board, player)

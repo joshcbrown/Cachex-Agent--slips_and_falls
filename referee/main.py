@@ -49,7 +49,6 @@ def main():
 
         # Play the game!
         if options.testing_rounds != 0:
-            options.verbosity = 0
             test(options, p1, p2)
 
         else:

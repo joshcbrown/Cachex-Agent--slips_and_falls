@@ -55,8 +55,10 @@ def test(options, p1, p2):
             else:
                 p2_red_wins[row] += 1
         df = save_results(options, board_sizes, csv_str, p1_red_wins, p1_blue_wins, p2_red_wins, p2_blue_wins)
-    print(f"{options.player1_loc[0]}1 acc: {df[f'total_{options.player1_loc[0]}1'].sum() / (2 * options.testing_rounds * num_sizes)}\n"
-          f"{options.player2_loc[0]}2 acc: {df[f'total_{options.player2_loc[0]}2'].sum() / (2 * options.testing_rounds * num_sizes)}")
+    print(
+        f"{options.player1_loc[0]}1 acc: {df[f'total_{options.player1_loc[0]}1'].sum() / (2 * options.testing_rounds * num_sizes)}\n"
+        f"{options.player2_loc[0]}2 acc: {df[f'total_{options.player2_loc[0]}2'].sum() / (2 * options.testing_rounds * num_sizes)}")
+
 
 def save_results(options, board_sizes, csv_str, p1_red_wins, p1_blue_wins, p2_red_wins, p2_blue_wins):
     df = pd.DataFrame(

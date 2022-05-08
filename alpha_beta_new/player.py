@@ -15,4 +15,4 @@ class Player(TemplatePlayer):
         super().__init__(player, n, "ab")
 
     def evaluate(self, player):
-        return best_heuristic(self.tracking_board, player)
+        return new_heuristic(self.tracking_board, player)

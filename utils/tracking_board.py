@@ -1,7 +1,7 @@
 import numpy as np
 from referee.board import Board
 from utils.helper_functions import parse, action_to_move, move_to_action
-from utils.heuristics import longest_branch
+from utils.heuristics import longest_branch, centre_advantage
 
 _ACTION_STEAL = "STEAL"
 _ACTION_PLACE = "PLACE"
@@ -12,7 +12,7 @@ _WIN_VALUE = 1e7
 class TrackingBoard(Board):
     def __init__(self, player, evaluate, n):
         super().__init__(n)
-        np.random.seed(0)
+        # np.random.seed(0)
         self.evaluations = 0
         self.player = player
         self.evaluate = evaluate
@@ -141,7 +141,6 @@ class TrackingBoard(Board):
         return value
 
     def negamax(self, depth: int, player):
-        # TODO: investigate negamax not finding steal as best move for opposition
         if depth == 0 or self.game_over():
             self.evaluations += 1
             # print(f"{depth=}, {self._data}, {self.evaluate(player)}")
@@ -164,7 +163,6 @@ class TrackingBoard(Board):
         return best_value, children
 
     def alpha_beta(self, depth: int, player, alpha: float, beta: float):
-        # TODO: investigate negamax not finding steal as best move for opposition
         if depth == 0 or self.game_over():
             # print(f"{depth=}, {self._data}, {self.evaluate(player)}")
             self.evaluations += 1
@@ -192,9 +190,4 @@ class TrackingBoard(Board):
             return self.player
         elif longest_branch(self, _OPPONENT[self.player], from_start=True) == self.n:
             return _OPPONENT[self.player]
-        # TODO: worry about draws
         return None
-
-    # TODO: investigate following sequence of moves against alpha beta as red, board size 4 red, nm depth 2: red (1, 2),
-    #  blue: (1, 0), red: (3, 1), blue: (1, 1), red: (2, 2) (it thinks this is a win, very strange) blue: (0, 2),
-    #  red: (0, 1), blue: (0, 2), red: (1, 3) (misses win here but also thinks it wins with a non-winning move)

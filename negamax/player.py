@@ -1,5 +1,5 @@
 from utils.template_player import TemplatePlayer
-from utils.heuristics import best_heuristic, branch_advantage
+from utils.heuristics import branch_capture
 _ACTION_PLACE = "PLACE"
 
 
@@ -16,4 +16,4 @@ class Player(TemplatePlayer):
         super().__init__(player, n, "negamax")
 
     def evaluate(self, player):
-        return best_heuristic(self.tracking_board, player)
+        return branch_capture(self.tracking_board, player)

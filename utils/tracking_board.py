@@ -18,14 +18,14 @@ _NEIGHBOUR_OFFSETS = (
 _ACTION_STEAL = "STEAL"
 _ACTION_PLACE = "PLACE"
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
-_WIN_VALUE = 1e7
+_WIN_VALUE = 1e9
 
 
 class TrackingBoard(Board):
     def __init__(self, player, evaluate, n):
         super().__init__(n)
-        np.random.seed(0)
-        random.seed(0)
+        #np.random.seed(0)
+        #random.seed(0)
         self.evaluations = 0
         self.total_time = 0
         self.player = player
@@ -127,8 +127,10 @@ class TrackingBoard(Board):
             return 0, self.n - 1
         if len(self.move_history) == 1:
             return _ACTION_STEAL if self.time_to_steal() else self.centre
+        moves = list(self.possible_moves)
+        np.random.shuffle(moves)
         return max(
-            self.possible_moves,
+            moves,
             key=lambda move: self.evaluate_after_move(move)
         )
 
@@ -137,13 +139,16 @@ class TrackingBoard(Board):
             return 0, self.n - 1
         if len(self.move_history) == 1:
             return _ACTION_STEAL if self.time_to_steal() else self.centre
-        self.move_start = timer()
+        time_left = self.n**2 - self.total_time
+        start_time = timer()
         self.evaluations = 0
         best_move = best_children = None
         best_move_val = -inf
-        for move in self.possible_moves:
+        moves = list(self.possible_moves)
+        np.random.shuffle(moves)
+        for move in moves:
             # if there's only 1 seconds left give up on nm
-            if self.n**2 - self.total_time - (timer() - self.move_start) < 1:
+            if time_left - (timer() - start_time) < 1:
                 return self.get_greedy_move()
             value, children = self.evaluate_negamax(move, prune)
             if value > best_move_val:
@@ -152,10 +157,14 @@ class TrackingBoard(Board):
                 best_children = children
             if best_move_val == _WIN_VALUE:
                 break
-        print(f"Anticipated sequence: {best_children}")
-        print(f"Move val: {best_move_val}")
-        print(f"Evals: {self.evaluations}")
-        print(f"Time: {self.total_time + (timer() - self.move_start)}\n")
+        if best_move_val != _WIN_VALUE:
+            # print(f"Anticipated sequence: {best_children}")
+            # print(f"Move val: {best_move_val}")
+            # print(f"Evals: {self.evaluations}")
+            # print(f"Time: {self.total_time + (timer() - start_time)}\n")
+            pass
+        else:
+            print(f"TOTAL TIME: {self.total_time + (timer() - start_time)}\n")
         return best_move
 
     def evaluate_negamax(self, move, prune):

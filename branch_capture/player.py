@@ -1,4 +1,4 @@
-from utils.heuristics import best_heuristic
+from utils.heuristics import branch_capture
 from utils.template_player import TemplatePlayer
 
 _ACTION_PLACE = "PLACE"
@@ -17,4 +17,4 @@ class Player(TemplatePlayer):
         super().__init__(player, n, "greedy")
 
     def evaluate(self, player):
-        return best_heuristic(self.tracking_board, player)
+        return branch_capture(self.tracking_board, player)

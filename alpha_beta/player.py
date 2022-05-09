@@ -1,4 +1,4 @@
-from utils.heuristics import best_heuristic, new_heuristic
+from utils.heuristics import branch_capture, edge_branch_advantage
 from utils.template_player import TemplatePlayer
 
 
@@ -15,4 +15,4 @@ class Player(TemplatePlayer):
         super().__init__(player, n, "ab")
 
     def evaluate(self, player):
-        return best_heuristic(self.tracking_board, player)
+        return edge_branch_advantage(self.tracking_board, player)

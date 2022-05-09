@@ -2,6 +2,7 @@ from utils.tracking_board import TrackingBoard
 from utils.helper_functions import move_to_action
 from random import randint
 from functools import partial
+from time import perf_counter as timer
 
 _ACTION_PLACE = "PLACE"
 
@@ -37,7 +38,9 @@ class TemplatePlayer:
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
+        time = timer()
         choice = self.get_move()
+        self.tracking_board.total_time += timer() - time
         return move_to_action(choice)
 
     def turn(self, player, action):

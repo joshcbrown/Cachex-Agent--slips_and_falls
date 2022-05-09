@@ -11,8 +11,8 @@ _WIN_VALUE = 1e7
 
 
 def branch_advantage(tracking_board, player):
-    us = longest_branch(tracking_board, player, from_start=True)
-    them = longest_branch(tracking_board, _OPPONENT[player], from_start=True)
+    us = longest_edge_branch(tracking_board, player, from_start=True)
+    them = longest_edge_branch(tracking_board, _OPPONENT[player], from_start=True)
     if us == tracking_board.n:
         return _WIN_VALUE
     elif them == tracking_board.n:
@@ -20,10 +20,28 @@ def branch_advantage(tracking_board, player):
     return (
             us -
             them +
-            longest_branch(tracking_board, player, from_start=False) -
-            longest_branch(tracking_board, _OPPONENT[player], from_start=False)
+            longest_edge_branch(tracking_board, player, from_start=False) -
+            longest_edge_branch(tracking_board, _OPPONENT[player], from_start=False)
     )
 
+
+def longest_edge_branch(tracking_board, player, from_start):
+    if from_start:
+        edge_squares = tracking_board.start_squares[player]
+    else:
+        edge_squares = tracking_board.end_squares[player]
+    q = [coord for coord in edge_squares if tracking_board[coord] == player]
+    seen = set(q)
+    longest = 0
+    while q:
+        coord = q.pop(-1)
+        length = (coord[0] if player == "red" else coord[1]) + 1
+        if not from_start:
+            length = tracking_board.n - length + 1
+        longest = max(longest, length)
+        for neighbour in _get_neighbours(coord, tracking_board, player, seen):
+            q.append(neighbour)
+    return longest
 
 def longest_branch(tracking_board, player, from_start):
     if from_start:
@@ -42,7 +60,6 @@ def longest_branch(tracking_board, player, from_start):
         for neighbour in _get_neighbours(coord, tracking_board, player, seen):
             q.append(neighbour)
     return longest
-
 
 def _get_neighbours(coord, tracking_board, player, seen):
     neighbours = []

@@ -135,7 +135,7 @@ class TrackingBoard(Board):
             key=lambda move: self.evaluate_after_move(move)
         )
 
-    def get_negamax_move(self, prune=False):
+    def get_negamax_move(self, prune=False, trans=False):
         if len(self.move_history) == 0:
             return 0, self.n - 1
         if len(self.move_history) == 1:
@@ -151,7 +151,7 @@ class TrackingBoard(Board):
             # if there's only 1 seconds left give up on nm
             if time_left - (timer() - start_time) < 1:
                 return self.get_greedy_move()
-            value, children = self.evaluate_negamax(move, prune)
+            value, children = self.evaluate_negamax(move, prune, trans)
             if value > best_move_val:
                 best_move = move
                 best_move_val = value
@@ -168,9 +168,13 @@ class TrackingBoard(Board):
             print(f"TOTAL TIME: {self.total_time + (timer() - start_time)}\n")
         return best_move
 
-    def evaluate_negamax(self, move, prune):
+    def evaluate_negamax(self, move, prune, trans):
         self.update(self.player, move_to_action(move))
-        if prune:
+        if trans:
+            neg_value, sequence = self.ab_trans(
+                self.nm_depth, _OPPONENT[self.player], -_WIN_VALUE, _WIN_VALUE
+            )
+        elif prune:
             neg_value, sequence = self.alpha_beta(
                 self.nm_depth, _OPPONENT[self.player], -_WIN_VALUE, _WIN_VALUE
             )
@@ -231,6 +235,31 @@ class TrackingBoard(Board):
             if alpha >= beta:
                 break
         return alpha, children
+
+    def ab_trans(self, depth: int, player, alpha: float, beta: float):
+        if depth == 0 or self.game_over():
+            self.evaluations += 1
+            return self.evaluate(player), []
+        children = []
+        # heap = [(self.num_neighbors(move), move) for move in self.possible_moves]
+        # heapq.heapify(heap)
+        # while heap:
+        #     move = heapq.heappop(heap)[1]
+        for move in self.possible_moves:
+            self.update(player, move_to_action(move))
+            neg_node_value, potential_children = self.alpha_beta(
+                depth - 1, _OPPONENT[player], -beta, -alpha
+            )
+            node_value = -neg_node_value
+            self.undo_last_move()
+            if node_value > alpha:
+                alpha = node_value
+                children = potential_children
+                children.append(f"{player[0]}:{move}")
+            if alpha >= beta:
+                break
+        return alpha, children
+
 
     def game_over(self):
         if longest_edge_branch(self, self.player, from_start=True) == self.n:

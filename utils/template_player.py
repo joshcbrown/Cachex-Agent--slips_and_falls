@@ -23,9 +23,15 @@ class TemplatePlayer:
         if ptype == "greedy":
             self.get_move = self.tracking_board.get_greedy_move
         elif ptype == "negamax":
-            self.get_move = partial(self.tracking_board.get_negamax_move, prune=False)
+            self.get_move = partial(self.tracking_board.get_negamax_move)
         elif ptype == "ab":
-            self.get_move = partial(self.tracking_board.get_negamax_move, prune=True)
+            self.get_move = partial(
+                self.tracking_board.get_negamax_move, prune=True
+            )
+        elif ptype == "abt":
+            self.get_move = partial(
+                self.tracking_board.get_negamax_move, prune=True, trans=True
+            )
         else:
             print(f"invalid player type: {ptype}")
             exit()

@@ -92,22 +92,11 @@ def _get_neighbours(coord, tracking_board, player, seen):
             seen.add(new_coord)
     return neighbours
 
-
-def branch_capture(tracking_board, player):
-    branch_adv = branch_advantage(tracking_board, player)
-    if branch_adv == _WIN_VALUE:
-        return _WIN_VALUE
-    if branch_adv == -_WIN_VALUE:
-        return -_WIN_VALUE
-    capture_advantage = (
+def capture_adv(tracking_board, player):
+    return (
         tracking_board.tiles_captured 
         if player == tracking_board.player else 
         -tracking_board.tiles_captured
-    )
-    return (
-        2 * tracking_board.n * capture_advantage 
-        + branch_adv 
-        + axis_advantage(tracking_board, player) / 30
     )
 
 def edge_branch_capture(tracking_board, player):
@@ -123,6 +112,18 @@ def edge_branch_capture(tracking_board, player):
         branch_adv
     )
 
+def branch_capture(tracking_board, player):
+    return (
+        branch_advantage(tracking_board, player) + 
+        capture_adv(tracking_board, player) * tracking_board.n / 2 
+    )
+
+def bca(tracking_board, player):
+    return (
+        branch_advantage(tracking_board, player) + 
+        capture_adv(tracking_board, player) * tracking_board.n / 2 +
+        axis_advantage(tracking_board, player) / 30
+    )
 
 
 def centre_advantage(tracking_board, player):

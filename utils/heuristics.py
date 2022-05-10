@@ -77,7 +77,7 @@ def branching_score(tracking_board, player):
                 q.append(neighbour)
         if max_height - min_height == tracking_board.n - 1:
             return _WIN_VALUE
-        score += (max_height - min_height + 0.75)**1.5
+        score += (max_height - min_height)**1.5
     return score
 
 def _get_neighbours(coord, tracking_board, player, seen):
@@ -105,8 +105,10 @@ def edge_branch_capture(tracking_board, player):
         return _WIN_VALUE
     if branch_adv == -_WIN_VALUE:
         return -_WIN_VALUE
-    capture_advantage = (tracking_board.tiles_captured if player == tracking_board.player
-                         else - tracking_board.tiles_captured)
+    capture_advantage = (
+        tracking_board.tiles_captured 
+        if player == tracking_board.player else 
+        -tracking_board.tiles_captured)
     return (
         capture_advantage +
         branch_adv
@@ -122,7 +124,7 @@ def bca(tracking_board, player):
     return (
         branch_advantage(tracking_board, player) + 
         capture_adv(tracking_board, player) * tracking_board.n / 2 +
-        axis_advantage(tracking_board, player) / 30
+        axis_advantage(tracking_board, player) / 100
     )
 
 

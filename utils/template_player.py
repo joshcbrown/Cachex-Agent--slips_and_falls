@@ -28,9 +28,14 @@ class TemplatePlayer:
             self.get_move = partial(
                 self.tracking_board.get_negamax_move, prune=True
             )
-        elif ptype == "abt":
+        elif ptype == "abn":
             self.get_move = partial(
-                self.tracking_board.get_negamax_move, prune=True, trans=True
+                self.tracking_board.get_negamax_move, prune=True, near=True
+            )
+        elif ptype == "abnt":
+            self.get_move = partial(
+                self.tracking_board.get_negamax_move, 
+                prune=True, near=True, trans=True
             )
         else:
             print(f"invalid player type: {ptype}")

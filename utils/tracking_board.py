@@ -6,6 +6,7 @@ from utils.helper_functions import parse, action_to_move, move_to_action
 from utils.heuristics import longest_edge_branch, centre_advantage
 from time import perf_counter as timer
 import heapq
+from queue import Queue
 
 _NEIGHBOUR_OFFSETS = (
     (0, 1),
@@ -135,7 +136,7 @@ class TrackingBoard(Board):
             key=lambda move: self.evaluate_after_move(move)
         )
 
-    def get_negamax_move(self, prune=False, trans=False):
+    def get_negamax_move(self, prune=False, trans=False, near=False):
         if len(self.move_history) == 0:
             return 0, self.n - 1
         if len(self.move_history) == 1:
@@ -145,12 +146,18 @@ class TrackingBoard(Board):
         self.evaluations = 0
         best_move = best_children = None
         best_move_val = -inf
+        # manage moves
+        if near:
+            all_moves = self.possible_moves
+            self.possible_moves = self.get_occupied_neighbours(max_depth=2)
+        if trans:
+            self.transtbl = dict()
         moves = list(self.possible_moves)
         np.random.shuffle(moves)
         for move in moves:
             # if there's only 1 seconds left give up on nm
-            if time_left - (timer() - start_time) < 1:
-                return self.get_greedy_move()
+            #if time_left - (timer() - start_time) < 1:
+            #    return self.get_greedy_move()
             value, children = self.evaluate_negamax(move, prune, trans)
             if value > best_move_val:
                 best_move = move
@@ -158,6 +165,8 @@ class TrackingBoard(Board):
                 best_children = children
             if best_move_val == _WIN_VALUE:
                 break
+        if near:
+            self.possible_moves = all_moves
         if best_move_val != _WIN_VALUE:
             # print(f"Anticipated sequence: {best_children}")
             # print(f"Move val: {best_move_val}")
@@ -237,6 +246,8 @@ class TrackingBoard(Board):
         return alpha, children
 
     def ab_trans(self, depth: int, player, alpha: float, beta: float):
+        alpha_orig = alpha
+        
         if depth == 0 or self.game_over():
             self.evaluations += 1
             return self.evaluate(player), []
@@ -284,3 +295,31 @@ class TrackingBoard(Board):
             if (0 <= x < self.n and 0 <= y < self.n and self[(x, y)]):
                 return 1
         return 0
+
+    def get_occupied_neighbours(self, max_depth):
+        q = Queue(maxsize = self.n**2)
+        seen = set()
+        neighbours = set()
+        # start with currently occupied squares as depth 0
+        for tile in self.tiles[self.player]:
+            q.put((tile, 0))
+            seen.add(tile)
+        for tile in self.tiles[_OPPONENT[self.player]]:
+            q.put((tile, 0))
+            seen.add(tile)
+        # then do BFS up do depth = max_depth
+        while not q.empty():
+            (x, y), depth = q.get()
+            for dx, dy in _NEIGHBOUR_OFFSETS:
+                nbr = x+dx, y+dy
+                if (
+                    depth < max_depth and 
+                    nbr not in seen and
+                    0 <= nbr[0] < self.n and 0 <= nbr[1] < self.n and 
+                    not self[nbr]
+                    ):
+                        seen.add(nbr)
+                        neighbours.add(nbr)
+                        if depth + 1 < max_depth:
+                            q.put((nbr, depth + 1))
+        return neighbours

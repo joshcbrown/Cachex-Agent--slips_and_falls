@@ -142,6 +142,8 @@ class TrackingBoard(Board):
         if len(self.move_history) == 1:
             return _ACTION_STEAL if self.time_to_steal() else self.centre
         time_left = self.n**2 - self.total_time
+        if self.total_time > self.n**2 * 0.75:
+            self.nm_depth = 1
         start_time = timer()
         self.evaluations = 0
         best_move = best_children = None
@@ -156,8 +158,8 @@ class TrackingBoard(Board):
         np.random.shuffle(moves)
         for move in moves:
             # if there's only 1 seconds left give up on nm
-            #if time_left - (timer() - start_time) < 1:
-            #    return self.get_greedy_move()
+            if time_left - (timer() - start_time) < 1:
+                return self.get_greedy_move()
             value, children = self.evaluate_negamax(move, prune, trans)
             if value > best_move_val:
                 best_move = move
@@ -323,3 +325,6 @@ class TrackingBoard(Board):
                         if depth + 1 < max_depth:
                             q.put((nbr, depth + 1))
         return neighbours
+
+    def to_string(self):
+        return str(self._data)

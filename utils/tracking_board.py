@@ -120,6 +120,7 @@ class TrackingBoard(Board):
             self.possible_moves.add(_ACTION_STEAL)
 
     def time_to_steal(self):
+        return True 
         return self.centre is None
 
     def get_greedy_move(self):
@@ -212,11 +213,11 @@ class TrackingBoard(Board):
             self.evaluations += 1
             return self.evaluate(player), []
         children = []
-        heap = [(self.num_neighbors(move), move) for move in self.possible_moves]
-        heapq.heapify(heap)
-        while heap:
-            move = heapq.heappop(heap)[1]
-        # for move in self.possible_moves:
+        # heap = [(self.num_neighbors(move), move) for move in self.possible_moves]
+        # heapq.heapify(heap)
+        # while heap:
+        #     move = heapq.heappop(heap)[1]
+        for move in self.possible_moves:
             self.update(player, move_to_action(move))
             neg_node_value, potential_children = self.alpha_beta(
                 depth - 1, _OPPONENT[player], -beta, -alpha

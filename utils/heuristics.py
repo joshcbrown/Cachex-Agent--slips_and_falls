@@ -56,26 +56,28 @@ def branch_advantage(tracking_board, player):
 
 def branching_score(tracking_board, player):
     seen = set()
+    height_seen = [False]*tracking_board.n
     score = 0
     if player == "red":
         height = lambda move: move[0]
     else:
         height = lambda move: move[1]
     for tile in tracking_board.tiles[player]:
-        if tile in seen:
+        if tile in seen and (not height_seen[height(tile)]):
             continue
         seen.add(tile)
         q = [tile]
         max_height = min_height = height(tile) 
         while q:
             coord = q.pop(-1)
+            height_seen[height(coord)] = True
             max_height = max(max_height, height(coord))
             min_height = min(min_height, height(coord))
             for neighbour in _get_neighbours(coord, tracking_board, player, seen):
                 q.append(neighbour)
         if max_height - min_height == tracking_board.n - 1:
             return _WIN_VALUE
-        score += (max_height - min_height)**2
+        score += (max_height - min_height + 0.75)**1.5
     return score
 
 def _get_neighbours(coord, tracking_board, player, seen):
@@ -105,7 +107,7 @@ def branch_capture(tracking_board, player):
     return (
         2 * tracking_board.n * capture_advantage 
         + branch_adv 
-        + axis_advantage(tracking_board, player) / 10
+        + axis_advantage(tracking_board, player) / 30
     )
 
 def edge_branch_capture(tracking_board, player):

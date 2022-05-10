@@ -1,8 +1,10 @@
+from torch import long
 from utils.tracking_board import TrackingBoard
 from utils.helper_functions import move_to_action
 from random import randint
 from functools import partial
 from time import perf_counter as timer
+from utils.heuristics import longest_edge_branch
 
 _ACTION_PLACE = "PLACE"
 
@@ -19,6 +21,7 @@ class TemplatePlayer:
         """
         self.player = player
         self.n = n
+        self.ptype = ptype
         self.tracking_board = TrackingBoard(player, self.evaluate, n)
         if ptype == "greedy":
             self.get_move = self.tracking_board.get_greedy_move
@@ -30,12 +33,16 @@ class TemplatePlayer:
             )
         elif ptype == "abn":
             self.get_move = partial(
-                self.tracking_board.get_negamax_move, prune=True, near=True
+                self.tracking_board.get_negamax_move, prune=True, near=2
+            )
+        elif ptype == "abn3":
+            self.get_move = partial(
+                self.tracking_board.get_negamax_move, prune=True, near=3
             )
         elif ptype == "abnt":
             self.get_move = partial(
                 self.tracking_board.get_negamax_move, 
-                prune=True, near=True, trans=True
+                prune=True, near=2, trans=True
             )
         else:
             print(f"invalid player type: {ptype}")
@@ -52,6 +59,7 @@ class TemplatePlayer:
         time = timer()
         choice = self.get_move()
         self.tracking_board.total_time += timer() - time
+        #print(f"{self.ptype} evals: {self.tracking_board.evaluations}")
         return move_to_action(choice)
 
     def turn(self, player, action):
@@ -67,5 +75,15 @@ class TemplatePlayer:
         """
         self.tracking_board.update(player, action)
         # ensure undo+redo has no effect
+        old_z = self.tracking_board.zobrist
         self.tracking_board.undo_last_move()
         self.tracking_board.update(player, action)
+        assert self.tracking_board.zobrist == old_z
+
+        for pl in ["red", "blue"]:
+            if longest_edge_branch(self.tracking_board, pl) == self.n:
+                if self.player == pl:
+                    print(f"{self.ptype} WIN!")
+                else:
+                    print(f"{self.ptype} LOSS")
+                print(f"N: {self.n} ; TIME: {round(self.tracking_board.total_time, 1)}\n")

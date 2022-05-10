@@ -25,14 +25,14 @@ _WIN_VALUE = 1e9
 class TrackingBoard(Board):
     def __init__(self, player, evaluate, n):
         super().__init__(n)
-        #np.random.seed(0)
-        #random.seed(0)
+        np.random.seed(0)
+        random.seed(0)
         self.evaluations = 0
         self.total_time = 0
         self.player = player
         self.evaluate = evaluate
         self.n = n
-        self.nm_depth = 2
+        self.nm_depth = self.get_nm_depth(self.n)
         self.move_history = []
         self.possible_moves = {(p, r) for p in range(n) for r in range(n)}
         self.tiles_captured = 0
@@ -53,6 +53,7 @@ class TrackingBoard(Board):
             self.possible_moves.remove(self.centre)
         else:
             self.centre = None
+        self.init_zobrist()
 
     def update(self, player, action):
         move = action_to_move(action)
@@ -77,6 +78,8 @@ class TrackingBoard(Board):
         self.tiles_captured += (1 if player == self.player else -1)
         tile = self.tiles[_OPPONENT[player]].pop()
         self.tiles[player].add((tile[1], tile[0]))
+        self.update_zobrist(_OPPONENT[player], tile)
+        self.update_zobrist(player, (tile[1], tile[0]))
 
     def unswap(self, player):
         self.swap()
@@ -85,16 +88,20 @@ class TrackingBoard(Board):
         self.tiles_captured -= (1 if player == self.player else -1)
         tile = self.tiles[player].pop()
         self.tiles[_OPPONENT[player]].add((tile[1], tile[0]))
+        self.update_zobrist(player, tile)
+        self.update_zobrist(_OPPONENT[player], (tile[1], tile[0]))
 
     def _place(self, player, move):
         self.possible_moves.remove(move)
         last_captures = self.place(player, move)
+        self.update_zobrist(player, move)
         self.tiles[player].add(move)
         if len(last_captures) != 0:
             for captured_coord in last_captures:
                 self.possible_moves.add(captured_coord)
                 self.tiles_captured += (1 if player == self.player else -1)
                 self.tiles[_OPPONENT[player]].remove(captured_coord)
+                self.update_zobrist(_OPPONENT[player], captured_coord)
         if len(self.move_history) == 0:
             self.possible_moves.add(_ACTION_STEAL)
             if self.centre is not None:
@@ -107,12 +114,14 @@ class TrackingBoard(Board):
         self[coord] = None
         self.tiles[player].remove(coord)
         self.possible_moves.add(coord)
+        self.update_zobrist(player, coord)
         if len(last_captures) != 0:
             for captured_coord in last_captures:
                 self[captured_coord] = _OPPONENT[player]
                 self.tiles[_OPPONENT[player]].add(captured_coord)
                 self.possible_moves.remove(captured_coord)
                 self.tiles_captured -= (1 if player == self.player else -1)
+                self.update_zobrist(_OPPONENT[player], captured_coord)
         elif len(self.move_history) == 0:
             self.possible_moves.remove(_ACTION_STEAL)
             if self.centre is not None:
@@ -122,7 +131,16 @@ class TrackingBoard(Board):
 
     def time_to_steal(self):
         return True 
-        return self.centre is None
+
+    def get_nm_depth(self, n):
+        if n == 3:
+            return 9
+        if n == 4:
+            return 4
+        if n == 5:
+            return 3
+        else:
+            return 2
 
     def get_greedy_move(self):
         if len(self.move_history) == 0:
@@ -136,22 +154,23 @@ class TrackingBoard(Board):
             key=lambda move: self.evaluate_after_move(move)
         )
 
-    def get_negamax_move(self, prune=False, trans=False, near=False):
+    def get_negamax_move(self, prune=False, trans=False, near=None):
         if len(self.move_history) == 0:
             return 0, self.n - 1
         if len(self.move_history) == 1:
             return _ACTION_STEAL if self.time_to_steal() else self.centre
+
         time_left = self.n**2 - self.total_time
         if self.total_time > self.n**2 * 0.75:
-            self.nm_depth = 1
+           self.nm_depth = self.get_nm_depth(self.n) - 1
         start_time = timer()
         self.evaluations = 0
-        best_move = best_children = None
+        
         best_move_val = -inf
         # manage moves
         if near:
             all_moves = self.possible_moves
-            self.possible_moves = self.get_occupied_neighbours(max_depth=2)
+            self.possible_moves = self.get_occupied_neighbours(max_depth=near)
         if trans:
             self.transtbl = dict()
         moves = list(self.possible_moves)
@@ -159,44 +178,38 @@ class TrackingBoard(Board):
         for move in moves:
             # if there's only 1 seconds left give up on nm
             if time_left - (timer() - start_time) < 1:
+                self.possible_moves = all_moves
                 return self.get_greedy_move()
-            value, children = self.evaluate_negamax(move, prune, trans)
+            value = self.evaluate_negamax(move, prune, trans)
             if value > best_move_val:
                 best_move = move
                 best_move_val = value
-                best_children = children
             if best_move_val == _WIN_VALUE:
                 break
         if near:
             self.possible_moves = all_moves
-        if best_move_val != _WIN_VALUE:
-            # print(f"Anticipated sequence: {best_children}")
-            # print(f"Move val: {best_move_val}")
-            # print(f"Evals: {self.evaluations}")
-            # print(f"Time: {self.total_time + (timer() - start_time)}\n")
-            pass
-        else:
-            print(f"TOTAL TIME: {self.total_time + (timer() - start_time)}\n")
+        # print(f"Anticipated sequence: {best_children}")
+        # print(f"Move val: {best_move_val}")
+        # print(f"Evals: {self.evaluations}")
+        # print(f"Time: {self.total_time + (timer() - start_time)}\n")
         return best_move
 
     def evaluate_negamax(self, move, prune, trans):
         self.update(self.player, move_to_action(move))
         if trans:
-            neg_value, sequence = self.ab_trans(
+            neg_value = self.ab_trans(
                 self.nm_depth, _OPPONENT[self.player], -_WIN_VALUE, _WIN_VALUE
             )
         elif prune:
-            neg_value, sequence = self.alpha_beta(
+            neg_value = self.alpha_beta(
                 self.nm_depth, _OPPONENT[self.player], -_WIN_VALUE, _WIN_VALUE
             )
         else:
-            neg_value, sequence = self.negamax(
+            neg_value = self.negamax(
                 self.nm_depth, _OPPONENT[self.player]
             )
-        sequence.append(f"{self.player[0]}:{move}")
-        sequence.reverse()
         self.undo_last_move()
-        return -neg_value, sequence
+        return -neg_value
 
     def evaluate_after_move(self, move):
         self.update(self.player, move_to_action(move))
@@ -207,71 +220,82 @@ class TrackingBoard(Board):
     def negamax(self, depth: int, player):
         if depth == 0 or self.game_over():
             self.evaluations += 1
-            return self.evaluate(player), []
+            return self.evaluate(player)
         best_value = -inf
-        children = []
         for move in self.possible_moves:
             self.update(player, move_to_action(move))
-            neg_node_value, potential_children = self.negamax(
+            node_value = -self.negamax(
                 depth - 1, _OPPONENT[player]
             )
-            node_value = -neg_node_value
             if node_value > best_value:
                 best_value = node_value
-                children = potential_children
-                children.append(f"{player[0]}:{move}")
             self.undo_last_move()
-        return best_value, children
+        return best_value
 
     def alpha_beta(self, depth: int, player, alpha: float, beta: float):
         if depth == 0 or self.game_over():
             self.evaluations += 1
-            return self.evaluate(player), []
-        children = []
-        # heap = [(self.num_neighbors(move), move) for move in self.possible_moves]
-        # heapq.heapify(heap)
-        # while heap:
-        #     move = heapq.heappop(heap)[1]
-        for move in self.possible_moves:
+            return self.evaluate(player)
+        heap = [(0, move) for move in self.possible_moves]
+        heapq.heapify(heap)
+        while heap:
+            move = heapq.heappop(heap)[1]
             self.update(player, move_to_action(move))
-            neg_node_value, potential_children = self.alpha_beta(
+            node_value = -self.alpha_beta(
                 depth - 1, _OPPONENT[player], -beta, -alpha
             )
-            node_value = -neg_node_value
             self.undo_last_move()
             if node_value > alpha:
                 alpha = node_value
-                children = potential_children
-                children.append(f"{player[0]}:{move}")
             if alpha >= beta:
                 break
-        return alpha, children
+        return alpha
 
     def ab_trans(self, depth: int, player, alpha: float, beta: float):
         alpha_orig = alpha
         
+        if self.zobrist in self.transtbl:
+
+            tt_val, tt_depth, tt_flag = self.transtbl[self.zobrist]
+            if tt_depth >= depth:    
+                if tt_flag == "E":
+                    return tt_val
+                elif tt_flag == "L":
+                    alpha = max(alpha, tt_val)
+                elif tt_flag == "U":
+                    beta = min(beta, tt_val)
+                
+                if alpha >= beta:
+                    return tt_val
+
         if depth == 0 or self.game_over():
             self.evaluations += 1
-            return self.evaluate(player), []
-        children = []
-        # heap = [(self.num_neighbors(move), move) for move in self.possible_moves]
-        # heapq.heapify(heap)
-        # while heap:
-        #     move = heapq.heappop(heap)[1]
-        for move in self.possible_moves:
+            return self.evaluate(player)
+        
+        value = -inf
+        heap = [(-self.num_neighbors(move), move) for move in self.possible_moves]
+        heapq.heapify(heap)
+        while heap:
+            move = heapq.heappop(heap)[1]
             self.update(player, move_to_action(move))
-            neg_node_value, potential_children = self.alpha_beta(
+            node_value = -self.ab_trans(
                 depth - 1, _OPPONENT[player], -beta, -alpha
             )
-            node_value = -neg_node_value
+            value = max(value, node_value)
+            alpha = max(alpha, node_value)
             self.undo_last_move()
-            if node_value > alpha:
-                alpha = node_value
-                children = potential_children
-                children.append(f"{player[0]}:{move}")
             if alpha >= beta:
                 break
-        return alpha, children
+
+        if value <= alpha_orig:
+            tt_flag = "U"
+        elif value >= beta:
+            tt_flag = "L"
+        else:
+            tt_flag = "E"
+        self.transtbl[self.zobrist] = (value, depth, tt_flag)
+
+        return alpha
 
 
     def game_over(self):
@@ -326,5 +350,18 @@ class TrackingBoard(Board):
                             q.put((nbr, depth + 1))
         return neighbours
 
-    def to_string(self):
-        return str(self._data)
+    def init_zobrist(self):
+        self.z_table = []
+        for _ in range(self.n):
+            row = []
+            for _ in range(self.n):
+                row.append([random.getrandbits(64), random.getrandbits(64)])
+            self.z_table.append(row)
+        self.zobrist = 0
+        for tile in self.tiles["red"]:
+            self.update_zobrist("red", tile)
+        for tile in self.tiles["blue"]:
+            self.update_zobrist("blue", tile)
+    
+    def update_zobrist(self, player, tile):
+        self.zobrist ^= self.z_table[tile[0]][tile[1]][0 if player == "red" else 1] 

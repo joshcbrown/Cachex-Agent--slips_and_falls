@@ -25,7 +25,7 @@ def edge_branch_advantage(tracking_board, player):
     )
 
 
-def longest_edge_branch(tracking_board, player, from_start):
+def longest_edge_branch(tracking_board, player, from_start=True):
     if from_start:
         edge_squares = tracking_board.start_squares[player]
     else:

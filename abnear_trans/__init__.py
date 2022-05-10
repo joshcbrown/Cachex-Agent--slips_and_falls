@@ -1,1 +1,1 @@
-from abnear.player import Player
+from abnear_trans.player import Player

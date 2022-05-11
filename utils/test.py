@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from tqdm import trange
 from referee.game import play
 from datetime import datetime
 
@@ -9,12 +8,12 @@ def test(options, p1, p2):
     if options.test_range is None:
         board_sizes = range(options.n, options.n + 1)
     elif options.test_range == "all":
-        board_sizes = trange(3, 16)
+        board_sizes = range(3, 16)
     elif options.test_range == "small":
-        board_sizes = trange(3, 9)
+        board_sizes = range(3, 9)
     elif len(options.test_range.split()) == 2:
         lower, upper = [int(bound) for bound in options.test_range.split()]
-        board_sizes = trange(lower, upper + 1)
+        board_sizes = range(lower, upper + 1)
     else:
         print("test range is invalid. exiting")
         exit()
@@ -25,7 +24,7 @@ def test(options, p1, p2):
     p1_blue_wins = np.zeros(num_sizes, dtype=np.int)
     csv_str = f'{options.player1_loc[0]}_vs_{options.player2_loc[0]}_{datetime.now().strftime("%H:%M:%S")}.csv'
     for row, n in enumerate(board_sizes):
-        for i in trange(options.testing_rounds):
+        for i in range(options.testing_rounds):
             result1 = play(
                 [p1, p2],
                 n=n,

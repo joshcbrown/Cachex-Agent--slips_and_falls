@@ -7,7 +7,7 @@ _NEIGHBOUR_OFFSETS = (
     (-1, 1)
 )
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
-_WIN_VALUE = 1e9
+_WIN_VALUE = 1e10
 
 
 def edge_branch_advantage(tracking_board, player):
@@ -49,7 +49,7 @@ def branch_advantage(tracking_board, player):
     them = branching_score(tracking_board, _OPPONENT[player])
     if us == _WIN_VALUE:
         return _WIN_VALUE
-    elif them == _WIN_VALUE:
+    elif them  == -_WIN_VALUE:
         return -_WIN_VALUE
     return us - them
 
@@ -102,9 +102,9 @@ def capture_adv(tracking_board, player):
 def edge_branch_capture(tracking_board, player):
     branch_adv = edge_branch_advantage(tracking_board, player)
     if branch_adv == _WIN_VALUE:
-        return _WIN_VALUE
+        return _WIN_VALUE - len(tracking_board.move_history)
     if branch_adv == -_WIN_VALUE:
-        return -_WIN_VALUE
+        return -_WIN_VALUE + len(tracking_board.move_history)
     capture_advantage = (
         tracking_board.tiles_captured 
         if player == tracking_board.player else 
@@ -115,14 +115,24 @@ def edge_branch_capture(tracking_board, player):
     )
 
 def branch_capture(tracking_board, player):
+    branch_adv = branch_advantage(tracking_board, player)
+    if branch_adv == _WIN_VALUE:
+        return _WIN_VALUE - len(tracking_board.move_history)
+    if branch_adv == -_WIN_VALUE:
+        return -_WIN_VALUE + len(tracking_board.move_history)
     return (
         branch_advantage(tracking_board, player) + 
         capture_adv(tracking_board, player) * tracking_board.n / 2 
     )
 
 def bca(tracking_board, player):
+    branch_adv = branch_advantage(tracking_board, player)
+    if branch_adv == _WIN_VALUE:
+        return _WIN_VALUE - len(tracking_board.move_history)
+    if branch_adv == -_WIN_VALUE:
+        return -_WIN_VALUE + len(tracking_board.move_history)
     return (
-        branch_advantage(tracking_board, player) + 
+        branch_adv + 
         capture_adv(tracking_board, player) * tracking_board.n / 2 +
         axis_advantage(tracking_board, player) / 100
     )

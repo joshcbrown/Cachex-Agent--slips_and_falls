@@ -59,7 +59,9 @@ class TemplatePlayer:
         time = timer()
         choice = self.get_move()
         self.tracking_board.total_time += timer() - time
-        #print(f"{self.ptype} evals: {self.tracking_board.evaluations}")
+        if self.ptype[0:2] == "abnt":
+            print(f"{self.ptype} evals: {self.tracking_board.evaluations}")
+            print(f"{self.ptype} timer: {self.tracking_board.total_time}\n")
         return move_to_action(choice)
 
     def turn(self, player, action):
@@ -86,4 +88,4 @@ class TemplatePlayer:
                     print(f"{self.ptype} WIN!")
                 else:
                     print(f"{self.ptype} LOSS")
-                print(f"N: {self.n} ; TIME: {round(self.tracking_board.total_time, 1)}\n")
+                print(f"N: {self.n} ; TIME: {round(self.tracking_board.total_time, 1)} ; PROP: {round(self.tracking_board.total_time/(self.n**2), 2)}\n")

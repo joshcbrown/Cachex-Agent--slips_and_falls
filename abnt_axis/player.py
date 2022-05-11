@@ -1,4 +1,4 @@
-from utils.heuristics import branch_capture, edge_branch_advantage
+from utils.heuristics import bca
 from utils.template_player import TemplatePlayer
 
 
@@ -12,7 +12,7 @@ class Player(TemplatePlayer):
         play as Red, or the string "blue" if your player will play
         as Blue.
         """
-        super().__init__(player, n, "ab")
+        super().__init__(player, n, "abnta")
 
     def evaluate(self, player):
-        return edge_branch_advantage(self.tracking_board, player)
+        return bca(self.tracking_board, player)

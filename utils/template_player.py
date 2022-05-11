@@ -1,4 +1,3 @@
-from torch import long
 from utils.tracking_board import TrackingBoard
 from utils.helper_functions import move_to_action
 from random import randint
@@ -35,11 +34,7 @@ class TemplatePlayer:
             self.get_move = partial(
                 self.tracking_board.get_negamax_move, prune=True, near=2
             )
-        elif ptype == "abn3":
-            self.get_move = partial(
-                self.tracking_board.get_negamax_move, prune=True, near=3
-            )
-        elif ptype == "abnt":
+        elif ptype[:4] == "abnt":
             self.get_move = partial(
                 self.tracking_board.get_negamax_move, 
                 prune=True, near=2, trans=True
@@ -59,9 +54,9 @@ class TemplatePlayer:
         time = timer()
         choice = self.get_move()
         self.tracking_board.total_time += timer() - time
-        if self.ptype[0:2] == "abnt":
-            print(f"{self.ptype} evals: {self.tracking_board.evaluations}")
-            print(f"{self.ptype} timer: {self.tracking_board.total_time}\n")
+        # if self.ptype[0:4] == "abnt":
+        #     print(f"{self.ptype} evals: {self.tracking_board.evaluations}")
+        #     print(f"{self.ptype} timer: {self.tracking_board.total_time}\n")
         return move_to_action(choice)
 
     def turn(self, player, action):
@@ -81,11 +76,13 @@ class TemplatePlayer:
         self.tracking_board.undo_last_move()
         self.tracking_board.update(player, action)
         assert self.tracking_board.zobrist == old_z
-
+        
         for pl in ["red", "blue"]:
             if longest_edge_branch(self.tracking_board, pl) == self.n:
                 if self.player == pl:
                     print(f"{self.ptype} WIN!")
                 else:
                     print(f"{self.ptype} LOSS")
-                print(f"N: {self.n} ; TIME: {round(self.tracking_board.total_time, 1)} ; PROP: {round(self.tracking_board.total_time/(self.n**2), 2)}\n")
+                print(f"N: {self.n} ; TIME: {round(self.tracking_board.total_time, 1)} ; PROP: {round(self.tracking_board.total_time/(self.n**2), 2)}")
+                if self.player == "blue":
+                    print()

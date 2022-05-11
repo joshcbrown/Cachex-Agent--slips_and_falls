@@ -19,19 +19,18 @@ _NEIGHBOUR_OFFSETS = (
 _ACTION_STEAL = "STEAL"
 _ACTION_PLACE = "PLACE"
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
-_WIN_VALUE = 1e9
+_WIN_VALUE = 1e10
 
 depth_dict = {
     (3, False) : 9,
     (3, True) : 9,
     (4, False) : 4,
-    (4, True) : 6,
+    (4, True) : 5,
     (5, False) : 3,
     (5, True) : 4,
     (6, False) : 3,
     (6, True) : 4
 }
-
 
 
 class TrackingBoard(Board):
@@ -146,33 +145,35 @@ class TrackingBoard(Board):
             self.possible_moves.add(_ACTION_STEAL)
 
     def time_to_steal(self):
-        return self.centre is None
+        return True
 
     def get_nm_depth(self, trans=False):
         perc_time = (self.total_time + timer() - self.move_start) / self.n**2
         key = (self.n, trans)
         if key in depth_dict:
             base = depth_dict[key]
+
+            if perc_time > 0.98:
+                return 0, .98
+            elif perc_time > 0.85:
+                return base - 2, .85
+            elif perc_time > 0.70:
+                return base - 1, .70
         else:
-            base = 4 if trans else 2
+            base = 3 if trans else 2
+            if perc_time > 0.97:
+                print("OUT OF TIME")
+                return 0, .97
+            elif perc_time > 0.75:
+                return base - 1, .70
         
-        if perc_time > 0.98:
-            print("98%")
-            return 0
-        elif perc_time > 0.85:
-            print("85%")
-            return base - 2
-        elif perc_time > 0.70:
-            print("70%")
-            return base - 1
-        
-        return base
+        return base, None
 
     def get_greedy_move(self):
-        if len(self.move_history) == 0:
-            return 0, self.n - 1
-        if len(self.move_history) == 1:
-            return _ACTION_STEAL if self.time_to_steal() else self.centre
+        # if len(self.move_history) == 0:
+        #     return 0, self.n - 1
+        # if len(self.move_history) == 1:
+        #     return _ACTION_STEAL if self.time_to_steal() else self.centre
         moves = list(self.possible_moves)
         np.random.shuffle(moves)
         return max(
@@ -188,7 +189,10 @@ class TrackingBoard(Board):
         if len(self.move_history) == 0:
             return 0, self.n - 1
         if len(self.move_history) == 1:
-            return _ACTION_STEAL if self.time_to_steal() else self.centre
+            if self.time_to_steal():
+                return _ACTION_STEAL
+            else:
+                self.possible_moves.remove(_ACTION_STEAL)
 
         self.evaluations = 0
         best_move_val = -inf
@@ -200,16 +204,19 @@ class TrackingBoard(Board):
         np.random.shuffle(moves)
         start_time = timer()
         for move in moves:
-            self.nm_depth = self.get_nm_depth()
+            self.nm_depth, perc = self.get_nm_depth()
             if self.nm_depth <= 0:
                 best_move = self.get_greedy_move()
+                if perc: print(perc)
                 break
             value = self.evaluate_negamax(move, prune)
             if value > best_move_val:
                 best_move = move
                 best_move_val = value
-            if best_move_val == _WIN_VALUE:
+            if best_move_val >= _WIN_VALUE:
+                if perc: print(perc)
                 break
+        if perc: print(perc)
         if near:
             self.possible_moves = all_moves
         # print(f"Evals: {self.evaluations}")
@@ -274,9 +281,13 @@ class TrackingBoard(Board):
         if len(self.move_history) == 0:
             return 0, self.n - 1
         if len(self.move_history) == 1:
-            return _ACTION_STEAL if self.time_to_steal() else self.centre
+            if self.time_to_steal():
+                return _ACTION_STEAL
+            else:
+                self.possible_moves.remove(_ACTION_STEAL)
         
-        self.nm_depth = self.get_nm_depth(trans=True) 
+        self.nm_depth, perc = self.get_nm_depth(trans=True)
+        if perc: print(perc)
         if self.nm_depth <= 0:
             return self.get_greedy_move()
         self.evaluations = 0
@@ -323,6 +334,8 @@ class TrackingBoard(Board):
         heap = [(-self.num_neighbors(move), move) for move in self.possible_moves]
         heapq.heapify(heap)
         while heap:
+            if depth == self.nm_depth and timer() - self.move_start > 10:
+                return self.get_greedy_move()
             move = heapq.heappop(heap)[1]
             self.update(player, move_to_action(move))
             node_value = -self.ab_trans(
@@ -361,7 +374,7 @@ class TrackingBoard(Board):
             y = move[1] + dy
             if (0 <= x < self.n and 0 <= y < self.n and self[(x, y)]):
                 neighbors += 1
-        return neighbors
+        return neighbors + random.uniform(0, 0.5)
 
     def has_neighbour(self, move):
         for dx, dy in _NEIGHBOUR_OFFSETS:

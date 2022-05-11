@@ -7,7 +7,7 @@ _NEIGHBOUR_OFFSETS = (
     (-1, 1)
 )
 _OPPONENT = {"red": "blue", "blue": "red", None: None}
-_WIN_VALUE = 1e10
+_WIN_VALUE = 1e9
 
 
 def edge_branch_advantage(tracking_board, player):
@@ -77,7 +77,7 @@ def branching_score(tracking_board, player):
                 q.append(neighbour)
         if max_height - min_height == tracking_board.n - 1:
             return _WIN_VALUE
-        score += (max_height - min_height)**1.5
+        score += (max_height - min_height)**2
     return score
 
 def _get_neighbours(coord, tracking_board, player, seen):
@@ -105,12 +105,8 @@ def edge_branch_capture(tracking_board, player):
         return _WIN_VALUE - len(tracking_board.move_history)
     if branch_adv == -_WIN_VALUE:
         return -_WIN_VALUE + len(tracking_board.move_history)
-    capture_advantage = (
-        tracking_board.tiles_captured 
-        if player == tracking_board.player else 
-        -tracking_board.tiles_captured)
     return (
-        capture_advantage +
+        capture_adv(tracking_board, player) * 2 +
         branch_adv
     )
 
@@ -121,8 +117,8 @@ def branch_capture(tracking_board, player):
     if branch_adv == -_WIN_VALUE:
         return -_WIN_VALUE + len(tracking_board.move_history)
     return (
-        branch_advantage(tracking_board, player) + 
-        capture_adv(tracking_board, player) * tracking_board.n / 2 
+        branch_adv + 
+        capture_adv(tracking_board, player) * 2
     )
 
 def bca(tracking_board, player):
@@ -133,10 +129,32 @@ def bca(tracking_board, player):
         return -_WIN_VALUE + len(tracking_board.move_history)
     return (
         branch_adv + 
-        capture_adv(tracking_board, player) * tracking_board.n / 2 +
+        capture_adv(tracking_board, player) * 2 +
         axis_advantage(tracking_board, player) / 100
     )
 
+def edge_bca(tracking_board, player):
+    branch_adv = edge_branch_advantage(tracking_board, player)
+    if branch_adv == _WIN_VALUE:
+        return _WIN_VALUE - len(tracking_board.move_history)
+    if branch_adv == -_WIN_VALUE:
+        return -_WIN_VALUE + len(tracking_board.move_history)
+    return (
+        branch_adv +
+        capture_adv(tracking_board, player) * 2 +
+        axis_advantage(tracking_board, player) / 100
+    )
+
+def edge_branch_capture(tracking_board, player):
+    branch_adv = edge_branch_advantage(tracking_board, player)
+    if branch_adv == _WIN_VALUE:
+        return _WIN_VALUE - len(tracking_board.move_history)
+    if branch_adv == -_WIN_VALUE:
+        return -_WIN_VALUE + len(tracking_board.move_history)
+    return (
+        capture_adv(tracking_board, player) * 2 +
+        branch_adv
+    )
 
 def centre_advantage(tracking_board, player):
     n = tracking_board.n
@@ -165,9 +183,9 @@ def axis_advantage(tracking_board, player):
     score = 0
     ideal = tracking_board.n - 1
     for our_tile in tracking_board.tiles[player]:
-        score -= abs(sum(our_tile) - ideal)
+        score -= max(abs(sum(our_tile) - ideal), 2)
     for their_tile in tracking_board.tiles[_OPPONENT[player]]:
-        score += abs(sum(their_tile) - ideal)
+        score += max(abs(sum(their_tile) - ideal), 2)
     return score
 
 

@@ -89,7 +89,6 @@ class TrackingBoard(Board):
             self.unplace(move, player, last_captures)
 
     def _swap(self, player):
-        self.possible_moves.remove(_ACTION_STEAL)
         self.swap()
         self.possible_moves = {(r, p) for p, r in self.possible_moves}
         self.tiles_captured += (1 if player == self.player else -1)
@@ -103,7 +102,6 @@ class TrackingBoard(Board):
         self.decr_state()
         self.swap()
         self.possible_moves = {(r, p) for p, r in self.possible_moves}
-        self.possible_moves.add(_ACTION_STEAL)
         self.tiles_captured -= (1 if player == self.player else -1)
         tile = self.tiles[player].pop()
         self.tiles[_OPPONENT[player]].add((tile[1], tile[0]))
@@ -123,11 +121,8 @@ class TrackingBoard(Board):
                 self.update_zobrist(_OPPONENT[player], captured_coord)
         self.incr_state()
         if len(self.move_history) == 0:
-            self.possible_moves.add(_ACTION_STEAL)
             if self.centre is not None:
                 self.possible_moves.add(self.centre)
-        elif len(self.move_history) == 1:
-            self.possible_moves.remove(_ACTION_STEAL)
         return last_captures
 
     def unplace(self, coord, player, last_captures):
@@ -144,14 +139,8 @@ class TrackingBoard(Board):
                 self.tiles_captured -= (1 if player == self.player else -1)
                 self.update_zobrist(_OPPONENT[player], captured_coord)
         elif len(self.move_history) == 0:
-            self.possible_moves.remove(_ACTION_STEAL)
             if self.centre is not None:
                 self.possible_moves.remove(self.centre)
-        elif len(self.move_history) == 1:
-            self.possible_moves.add(_ACTION_STEAL)
-
-    def time_to_steal(self):
-        return True
 
     def get_nm_depth(self, trans=False):
         perc_time = (self.total_time + timer() - self.move_start) / self.n**2
@@ -176,10 +165,11 @@ class TrackingBoard(Board):
         return base, None
 
     def get_greedy_move(self):
-        # if len(self.move_history) == 0:
-        #     return 0, self.n - 1
-        # if len(self.move_history) == 1:
-        #     return _ACTION_STEAL if self.time_to_steal() else self.centre
+        if len(self.move_history) == 0:
+            return self.get_first_move()
+        if len(self.move_history) == 1:
+            if self.time_to_steal():
+                return _ACTION_STEAL
         moves = list(self.possible_moves)
         np.random.shuffle(moves)
         return max(
@@ -187,18 +177,32 @@ class TrackingBoard(Board):
             key=lambda move: self.evaluate_after_move(move)
         )
 
+    def time_to_steal(self):
+        if self.n == 3:
+            last_tile = self.move_history[0][0]
+            if sorted(last_tile) in [[0, 2], [0, 1]]:
+                return True
+            else:
+                return False
+        if self.n == 4:
+            return False
+        return True
+
+    def get_first_move(self):
+        return self.n - 1, 0
+
+
     def get_negamax_move(self, prune=False, trans=False, near=None):
         self.move_start = timer()
 
-        if trans:
-            return self.get_trans_move(near)
         if len(self.move_history) == 0:
-            return 0, self.n - 1
+            return self.get_first_move()
         if len(self.move_history) == 1:
             if self.time_to_steal():
                 return _ACTION_STEAL
-            else:
-                self.possible_moves.remove(_ACTION_STEAL)
+
+        if trans:
+            return self.get_trans_move(near)
 
         self.evaluations = 0
         best_move_val = -inf
@@ -286,13 +290,6 @@ class TrackingBoard(Board):
 
 
     def get_trans_move(self, near=None):
-        if len(self.move_history) == 0:
-            return 0, self.n - 1
-        if len(self.move_history) == 1:
-            if self.time_to_steal():
-                return _ACTION_STEAL
-            else:
-                self.possible_moves.remove(_ACTION_STEAL)
         
         self.nm_depth, perc = self.get_nm_depth(trans=True)
         if perc: print(perc)
@@ -301,7 +298,7 @@ class TrackingBoard(Board):
         self.evaluations = 0
         
         # manage moves
-        if near:
+        if near and self.n > 3:
             all_moves = self.possible_moves
             self.possible_moves = self.get_occupied_neighbours(max_depth=near)
             
@@ -310,7 +307,7 @@ class TrackingBoard(Board):
             self.nm_depth, self.player, -_WIN_VALUE, _WIN_VALUE
         )
 
-        if near:
+        if near and self.n > 3:
             self.possible_moves = all_moves
         # print(f"Evals: {self.evaluations}")
         # print(f"Time: {self.total_time + (timer() - start_time)}\n")

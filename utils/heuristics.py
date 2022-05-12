@@ -111,7 +111,7 @@ def edge_branch_capture(tracking_board, player):
     if branch_adv == -_WIN_VALUE:
         return -_WIN_VALUE + len(tracking_board.move_history)
     return (
-        capture_adv(tracking_board, player) * 2 +
+        capture_adv(tracking_board, player) +
         branch_adv
     )
 
@@ -137,7 +137,7 @@ def branch_capture(tracking_board, player):
         return -_WIN_VALUE + len(tracking_board.move_history)
     return (
         branch_adv + 
-        capture_adv(tracking_board, player) * 2
+        capture_adv(tracking_board, player)
     )
 
 def bca(tracking_board, player):
@@ -150,7 +150,7 @@ def bca(tracking_board, player):
         return -_WIN_VALUE + len(tracking_board.move_history)
     return (
         branch_adv + 
-        capture_adv(tracking_board, player) * 2 +
+        capture_adv(tracking_board, player) +
         axis_advantage(tracking_board, player) / 100
     )
 
@@ -164,7 +164,7 @@ def edge_bca(tracking_board, player):
         return -_WIN_VALUE + len(tracking_board.move_history)
     return (
         branch_adv +
-        capture_adv(tracking_board, player) * 2 +
+        capture_adv(tracking_board, player) +
         axis_advantage(tracking_board, player) / 100
     )
 
@@ -181,7 +181,19 @@ def edge_branch_capture(tracking_board, player):
         branch_adv
     )
 
-
+def edge_branch_capture_edge(tracking_board, player):
+    if tracking_board.state_count() >= 7:
+        return 0
+    branch_adv = edge_branch_advantage(tracking_board, player)
+    if branch_adv == _WIN_VALUE:
+        return _WIN_VALUE - len(tracking_board.move_history)
+    if branch_adv == -_WIN_VALUE:
+        return -_WIN_VALUE + len(tracking_board.move_history)
+    return (
+        capture_adv(tracking_board, player) * 2 +
+        branch_adv +
+        num_edge_pieces(tracking_board, player) / 10
+    )
 
 
 def centre_advantage(tracking_board, player):
@@ -219,3 +231,16 @@ def axis_advantage(tracking_board, player):
 
 def new_heuristic(tracking_board, player):
     return branch_capture(tracking_board, player) + centre_advantage(tracking_board, player)
+
+def num_edge_pieces(tracking_board, player):
+    num = 0
+    height = lambda tile, player: tile[player != "blue"]
+    for tile in tracking_board.tiles[player]:
+        h = height(tile, player)
+        num += (h == 0)
+        num += (h == tracking_board.n - 1)
+    for tile in tracking_board.tiles[_OPPONENT[player]]:
+        h = height(tile, _OPPONENT[player])
+        num -= (h == 0)
+        num -= (h == tracking_board.n - 1)
+    return h

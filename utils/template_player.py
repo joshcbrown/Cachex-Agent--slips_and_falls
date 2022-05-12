@@ -84,6 +84,6 @@ class TemplatePlayer:
                     print(f"{self.ptype} WIN!")
                 else:
                     print(f"{self.ptype} LOSS")
-                print(f"N: {self.n} ; TIME: {round(self.tracking_board.total_time, 1)} ; PROP: {round(self.tracking_board.total_time/(self.n**2), 2)}")
+                print(f"N: {self.n} ; TIME: {round(self.tracking_board.total_time, 1)} ; PROP: {round(self.tracking_board.total_time/(self.n**2), 2)} ; LEN: {len(self.tracking_board.move_history)}")
                 if self.player == "blue":
                     print()

@@ -3,7 +3,7 @@ from utils.helper_functions import move_to_action
 from random import randint
 from functools import partial
 from time import perf_counter as timer
-from utils.heuristics import longest_edge_branch
+from utils.heuristics import branch_advantage, longest_edge_branch
 
 _ACTION_PLACE = "PLACE"
 
@@ -71,6 +71,7 @@ class TemplatePlayer:
         above. However, the referee has validated it at this point.
         """
         self.tracking_board.update(player, action)
+        
         # ensure undo+redo has no effect
         old_z = self.tracking_board.zobrist
         self.tracking_board.undo_last_move()

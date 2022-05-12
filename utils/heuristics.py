@@ -18,10 +18,10 @@ def edge_branch_advantage(tracking_board, player):
     elif them == tracking_board.n:
         return -_WIN_VALUE
     return (
-            us -
-            them +
-            longest_edge_branch(tracking_board, player, from_start=False) -
-            longest_edge_branch(tracking_board, _OPPONENT[player], from_start=False)
+        us -
+        them +
+        longest_edge_branch(tracking_board, player, from_start=False) -
+        longest_edge_branch(tracking_board, _OPPONENT[player], from_start=False)
     )
 
 
@@ -56,29 +56,30 @@ def branch_advantage(tracking_board, player):
 
 def branching_score(tracking_board, player):
     seen = set()
-    height_seen = [False]*tracking_board.n
-    score = 0
+    scores = []
     if player == "red":
         height = lambda move: move[0]
     else:
         height = lambda move: move[1]
     for tile in tracking_board.tiles[player]:
-        if tile in seen and (not height_seen[height(tile)]):
+        if tile in seen:
             continue
         seen.add(tile)
         q = [tile]
         max_height = min_height = height(tile) 
         while q:
             coord = q.pop(-1)
-            height_seen[height(coord)] = True
             max_height = max(max_height, height(coord))
             min_height = min(min_height, height(coord))
             for neighbour in _get_neighbours(coord, tracking_board, player, seen):
                 q.append(neighbour)
         if max_height - min_height == tracking_board.n - 1:
             return _WIN_VALUE
-        score += (max_height - min_height)**2
-    return score
+        scores.append(max_height - min_height + 1)
+    if len(scores) >= 1:
+        return max(scores)
+    else:
+        return 0
 
 def _get_neighbours(coord, tracking_board, player, seen):
     neighbours = []
@@ -99,7 +100,11 @@ def capture_adv(tracking_board, player):
         -tracking_board.tiles_captured
     )
 
+# evals
+
 def edge_branch_capture(tracking_board, player):
+    if tracking_board.state_count() >= 7:
+        return 0
     branch_adv = edge_branch_advantage(tracking_board, player)
     if branch_adv == _WIN_VALUE:
         return _WIN_VALUE - len(tracking_board.move_history)
@@ -110,7 +115,21 @@ def edge_branch_capture(tracking_board, player):
         branch_adv
     )
 
+def edge_branch(tracking_board, player):
+    if tracking_board.state_count() >= 7:
+        return 0
+    branch_adv = edge_branch_advantage(tracking_board, player)
+    if branch_adv == _WIN_VALUE:
+        return _WIN_VALUE - len(tracking_board.move_history)
+    if branch_adv == -_WIN_VALUE:
+        return -_WIN_VALUE + len(tracking_board.move_history)
+    return (
+        branch_adv
+    )
+
 def branch_capture(tracking_board, player):
+    if tracking_board.state_count() >= 7:
+        return 0
     branch_adv = branch_advantage(tracking_board, player)
     if branch_adv == _WIN_VALUE:
         return _WIN_VALUE - len(tracking_board.move_history)
@@ -122,6 +141,8 @@ def branch_capture(tracking_board, player):
     )
 
 def bca(tracking_board, player):
+    if tracking_board.state_count() >= 7:
+        return 0
     branch_adv = branch_advantage(tracking_board, player)
     if branch_adv == _WIN_VALUE:
         return _WIN_VALUE - len(tracking_board.move_history)
@@ -134,6 +155,8 @@ def bca(tracking_board, player):
     )
 
 def edge_bca(tracking_board, player):
+    if tracking_board.state_count() >= 7:
+        return 0
     branch_adv = edge_branch_advantage(tracking_board, player)
     if branch_adv == _WIN_VALUE:
         return _WIN_VALUE - len(tracking_board.move_history)
@@ -146,6 +169,8 @@ def edge_bca(tracking_board, player):
     )
 
 def edge_branch_capture(tracking_board, player):
+    if tracking_board.state_count() >= 7:
+        return 0
     branch_adv = edge_branch_advantage(tracking_board, player)
     if branch_adv == _WIN_VALUE:
         return _WIN_VALUE - len(tracking_board.move_history)
@@ -155,6 +180,9 @@ def edge_branch_capture(tracking_board, player):
         capture_adv(tracking_board, player) * 2 +
         branch_adv
     )
+
+
+
 
 def centre_advantage(tracking_board, player):
     n = tracking_board.n

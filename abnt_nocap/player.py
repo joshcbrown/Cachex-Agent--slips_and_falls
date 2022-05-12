@@ -1,4 +1,4 @@
-from utils.heuristics import edge_branch_capture, branch_capture
+from utils.heuristics import edge_branch
 from utils.template_player import TemplatePlayer
 
 
@@ -12,10 +12,7 @@ class Player(TemplatePlayer):
         play as Red, or the string "blue" if your player will play
         as Blue.
         """
-        super().__init__(player, n, "abnt")
+        super().__init__(player, n, "abntenocap")
 
     def evaluate(self, player):
-        return (
-            branch_capture(self.tracking_board, player) +
-            edge_branch_capture(self.tracking_board, player)
-        ) / 2
+        return edge_branch(self.tracking_board, player)

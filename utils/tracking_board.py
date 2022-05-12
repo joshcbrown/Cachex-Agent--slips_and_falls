@@ -7,6 +7,7 @@ from utils.heuristics import longest_edge_branch, centre_advantage
 from time import perf_counter as timer
 import heapq
 from queue import Queue
+from collections import defaultdict as dd
 
 _NEIGHBOUR_OFFSETS = (
     (0, 1),
@@ -43,6 +44,7 @@ class TrackingBoard(Board):
         # np.random.seed(0)
         # random.seed(0)
         self.evaluations = 0
+        self.total_evals = 0
         self.total_time = 0
         self.player = player
         self.evaluate = evaluate
@@ -95,8 +97,10 @@ class TrackingBoard(Board):
         self.tiles[player].add((tile[1], tile[0]))
         self.update_zobrist(_OPPONENT[player], tile)
         self.update_zobrist(player, (tile[1], tile[0]))
+        self.incr_state()
 
     def unswap(self, player):
+        self.decr_state()
         self.swap()
         self.possible_moves = {(r, p) for p, r in self.possible_moves}
         self.possible_moves.add(_ACTION_STEAL)
@@ -117,6 +121,7 @@ class TrackingBoard(Board):
                 self.tiles_captured += (1 if player == self.player else -1)
                 self.tiles[_OPPONENT[player]].remove(captured_coord)
                 self.update_zobrist(_OPPONENT[player], captured_coord)
+        self.incr_state()
         if len(self.move_history) == 0:
             self.possible_moves.add(_ACTION_STEAL)
             if self.centre is not None:
@@ -126,6 +131,7 @@ class TrackingBoard(Board):
         return last_captures
 
     def unplace(self, coord, player, last_captures):
+        self.decr_state()
         self[coord] = None
         self.tiles[player].remove(coord)
         self.possible_moves.add(coord)
@@ -219,6 +225,8 @@ class TrackingBoard(Board):
         if perc: print(perc)
         if near:
             self.possible_moves = all_moves
+
+        self.total_evals += self.evaluations
         # print(f"Evals: {self.evaluations}")
         # print(f"Time: {self.total_time + (timer() - start_time)}\n")
         return best_move
@@ -420,10 +428,17 @@ class TrackingBoard(Board):
                 row.append([random.getrandbits(64), random.getrandbits(64)])
             self.z_table.append(row)
         self.zobrist = 0
-        for tile in self.tiles["red"]:
-            self.update_zobrist("red", tile)
-        for tile in self.tiles["blue"]:
-            self.update_zobrist("blue", tile)
+        self.state_counter = dd(int)
+        self.state_counter[self.zobrist] += 1
     
     def update_zobrist(self, player, tile):
         self.zobrist ^= self.z_table[tile[0]][tile[1]][0 if player == "red" else 1] 
+
+    def state_count(self):
+        return self.state_counter[self.zobrist]
+
+    def incr_state(self):
+        self.state_counter[self.zobrist] += 1
+    
+    def decr_state(self):
+        self.state_counter[self.zobrist] -= 1

@@ -31,7 +31,7 @@ class NegamaxTracker(Board):
         self.evaluations = 0
         self.total_evals = 0
         self.total_time = 0
-        self.nm_depth = 3
+        self.nm_depth = 3 if n > 3 else 1000
         self.player = player
         self.evaluate = evaluate
         self.n = n
@@ -139,18 +139,10 @@ class NegamaxTracker(Board):
         return eval
 
     def time_to_steal(self):
-        if self.n == 3:
-            last_tile = self.move_history[0][0]
-            if sorted(last_tile) in [[0, 2], [0, 1]]:
-                return True
-            else:
-                return False
-        if self.n == 4:
-            return True
         return True
 
     def get_first_move(self):
-        return self.n-1, 0
+        return 0, 0
 
     def get_negamax_move(self, prune=False, within2=False):
         self.move_start = timer()

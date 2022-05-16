@@ -150,10 +150,7 @@ _ACTION_STEAL = "STEAL"
 _ACTION_PLACE = "PLACE"
 
 # Action type validators
-_ACTION_TYPES = set([
-    (_ACTION_STEAL, ), 
-    (_ACTION_PLACE, int, int)
-])
+_ACTION_TYPES = {(_ACTION_STEAL,), (_ACTION_PLACE, int, int)}
 
 # Draw conditions
 _MAX_REPEAT_STATES = 7
@@ -462,7 +459,7 @@ def _RENDER(
         # Note that j is equivalent to q in axial coordinates
         for j in range(board.n):
             coord = (board.n - i - 1, j)
-            color = value = "" if board[coord] == None else \
+            color = value = f"{coord[0]},{coord[1]}" if board[coord] == None else \
                 (_RED_SYM if board[coord] == "red" else _BLUE_SYM)
             if use_debugboard:
                 if coord == game.last_coord:

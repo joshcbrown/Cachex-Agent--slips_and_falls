@@ -176,7 +176,7 @@ def get_options():
         default=DELAY_DEFAULT,  # if the flag is not present
         const=DELAY_NOVALUE,  # if the flag is present with no value
         help="how long (float, seconds) to wait between game turns. 0: "
-        "no delay; negative: wait for user input.",
+             "no delay; negative: wait for user input.",
     )
 
     optionals.add_argument(
@@ -199,6 +199,13 @@ def get_options():
         const=TIME_LIMIT_NOVALUE,
         help="limit on CPU time (float, seconds) for each player.",
     )
+    optionals.add_argument(
+        "--test-range",
+        default=None,
+        help=("run simulation on board sizes in range specified by one of the following options:\n"
+              "all: all valid board sizes\nsmall: board sizes from 3-8\n<lower>, <upper>: all board sizes in range("
+              "<lower>, <upper> + 1)")
+    )
 
     verbosity_group = optionals.add_mutually_exclusive_group()
     verbosity_group.add_argument(
@@ -206,7 +213,7 @@ def get_options():
         "--debug",
         action="store_true",
         help="switch to printing the debug board (with coordinates) "
-        "(equivalent to -v or -v3).",
+             "(equivalent to -v or -v3).",
     )
     verbosity_group.add_argument(
         "-v",
@@ -217,9 +224,9 @@ def get_options():
         default=VERBOSITY_DEFAULT,
         const=VERBOSITY_NOVALUE,
         help="control the level of output (not including output from "
-        "players). 0: no output except result; 1: commentary, but no"
-        " board display; 2: (default) commentary and board display; "
-        "3: (equivalent to -D) larger board showing coordinates.",
+             "players). 0: no output except result; 1: commentary, but no"
+             " board display; 2: (default) commentary and board display; "
+             "3: (equivalent to -D) larger board showing coordinates.",
     )
 
     optionals.add_argument(
@@ -231,9 +238,16 @@ def get_options():
         const=LOGFILE_NOVALUE,
         metavar="LOGFILE",
         help="if you supply this flag the referee will create a log of "
-        "all game actions in a text file named %(metavar)s "
-        "(default: %(const)s).",
+             "all game actions in a text file named %(metavar)s "
+             "(default: %(const)s).",
     )
+    optionals.add_argument(
+        "-T",
+        "--testing-rounds",
+        type=int,
+        default=0,
+        help=""
+    )  # TODO: help
 
     colour_group = optionals.add_mutually_exclusive_group()
     colour_group.add_argument(
@@ -241,7 +255,7 @@ def get_options():
         "--colour",
         action="store_true",
         help="force colour display using ANSI control sequences "
-        "(default behaviour is automatic based on system).",
+             "(default behaviour is automatic based on system).",
     )
     colour_group.add_argument(
         "-C",
@@ -256,7 +270,7 @@ def get_options():
         "--unicode",
         action="store_true",
         help="force pretty display using unicode characters "
-        "(default behaviour is automatic based on system).",
+             "(default behaviour is automatic based on system).",
     )
     unicode_group.add_argument(
         "-a",

@@ -1,4 +1,4 @@
-from utils.helper_functions import get_neighbours
+from slips_and_falls.utils.helper_functions import get_neighbours
 
 _NEIGHBOUR_OFFSETS = (
     (0, 1),

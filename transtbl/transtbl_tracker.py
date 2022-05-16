@@ -23,7 +23,7 @@ _OPPONENT = {"red": "blue", "blue": "red", None: None}
 _WIN_VALUE = 1e7
 
 depth_dict = {
-    3 : 9,
+    3 : 10,
     4 : 5,
     5 : 4,
     6 : 4
@@ -197,7 +197,7 @@ class TranstblTracker(Board):
     def time_to_steal(self):
         if self.n == 3:
             last_tile = self.move_history[0][0]
-            if sorted(last_tile) in [[0, 2], [0, 1], [1, 2]]:
+            if last_tile in [(0, 2), (0, 1), (2, 0), (2, 1)]:
                 return True
             else:
                 return False
@@ -206,7 +206,10 @@ class TranstblTracker(Board):
         return True
 
     def get_first_move(self):
-        return 0, self.n - 1
+        if self.n == 3:
+            return 1, 0
+        else:
+            return self.n - 1, 0
 
     def get_transtbl_move(self):
         self.move_start = timer()
@@ -297,7 +300,7 @@ class TranstblTracker(Board):
             return self.player
         elif longest_edge_branch(self, _OPPONENT[self.player], from_start=True) == self.n:
             return _OPPONENT[self.player]
-        return None
+        return self.state_count() >= 7
 
     def num_neighbors(self, move):
         neighbors = 0

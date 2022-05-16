@@ -1,5 +1,5 @@
-from utils.heuristics import edge_branch_capture_eval
-from utils.template_player import TemplatePlayer
+from slips_and_falls.utils.heuristics import edge_branch_capture_eval
+from slips_and_falls.utils.template_player import TemplatePlayer
 
 
 class Player(TemplatePlayer):

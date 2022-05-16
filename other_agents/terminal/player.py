@@ -1,4 +1,4 @@
-from utils.helper_functions import move_to_action
+from other_agents.utils.helper_functions import move_to_action
 _ACTION_PLACE = "PLACE"
 _ACTION_STEAL = "STEAL"
 _ACTION_TYPES = {(_ACTION_STEAL,), (_ACTION_PLACE, int, int)}

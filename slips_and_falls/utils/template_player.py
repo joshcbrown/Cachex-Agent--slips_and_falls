@@ -14,6 +14,7 @@ class TemplatePlayer:
         self.get_move = self.tracking_board.get_transtbl_move
         self.ptype = ptype
         self.pname = pname
+        self.n = n
 
     # default to random eval, overriden in subclasses
     def evaluate(self, player):
@@ -41,20 +42,3 @@ class TemplatePlayer:
         above. However, the referee has validated it at this point.
         """
         self.tracking_board.update(player, action)
-        
-        for pl in ["red", "blue"]:
-            if longest_edge_branch(self.tracking_board, pl) == self.n:
-                if self.player == pl:
-                    print(f"{self.ptype} {self.pname} WIN!")
-                else:
-                    print(f"{self.ptype} {self.pname} LOSS")
-                print(
-                    f"N: {self.n} ; " +
-                    f"TIME: {round(self.tracking_board.total_time, 1)} ; " +
-                    f"PROP: {round(self.tracking_board.total_time/(self.n**2), 2)} ; " +
-                    f"LEN: {len(self.tracking_board.move_history)}"
-                )
-                if self.ptype != "greedy":
-                    print(f"EVALS: {self.tracking_board.total_evals}")
-                if self.player == "blue":
-                    print()

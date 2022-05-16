@@ -3,8 +3,8 @@ import numpy as np
 from math import inf
 
 from referee.board import Board
-from utils.helper_functions import action_to_move, move_to_action
-from utils.heuristics import longest_edge_branch
+from slips_and_falls.utils.helper_functions import action_to_move, move_to_action
+from slips_and_falls.utils.heuristics import longest_edge_branch
 from time import perf_counter as timer
 import heapq
 from queue import Queue
@@ -162,7 +162,7 @@ class FinalTracker(Board):
 
     def evaluation_wrapper(self, player):
         self.evaluations += 1
-        # slightly discourage a draw
+        # draw is neutral
         if self.state_count() >= 7:
             return 0
         eval = self.evaluate(player)
@@ -290,7 +290,6 @@ class FinalTracker(Board):
             tt_flag = "E"
         self.transtbl[self.zobrist] = (value, depth, tt_flag)
         return alpha if depth < self.nm_depth else (alpha, best_move)
-
 
     def game_over(self):
         if longest_edge_branch(self, self.player, from_start=True) == self.n:

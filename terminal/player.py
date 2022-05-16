@@ -1,6 +1,4 @@
-from utils.tracking_board import TrackingBoard
 from utils.helper_functions import move_to_action
-
 _ACTION_PLACE = "PLACE"
 _ACTION_STEAL = "STEAL"
 _ACTION_TYPES = {(_ACTION_STEAL,), (_ACTION_PLACE, int, int)}
@@ -16,10 +14,8 @@ class Player:
         play as Red, or the string "blue" if your player will play
         as Blue.
         """
-        # random.seed(0)
         self.player = player
         self.n = n
-        self.tracking_board = TrackingBoard(player, None, n)
 
     def action(self):
         """
@@ -27,12 +23,12 @@ class Player:
         of the game, select an action to play.
         """
         while True:
-            next_move_input = input("put yo shit in e.g. '1 3':\n")
-            dick = next_move_input.split()
-            if len(dick) == 1:
+            next_move_input = input("put your move in e.g. '1 3' or 'STEAL':\n")
+            move_str = next_move_input.split()
+            if len(move_str) == 1:
                 next_move = next_move_input
-            elif len(dick) == 2:
-                next_move = dick
+            elif len(move_str) == 2:
+                next_move = move_str
             else:
                 print("invalid format 1")
                 continue
@@ -56,7 +52,4 @@ class Player:
         the same as what your player returned from the action method
         above. However, the referee has validated it at this point.
         """
-        self.tracking_board.update(player, action)
-        # ensure undo+redo has no effect
-        self.tracking_board.undo_last_move()
-        self.tracking_board.update(player, action)
+        pass

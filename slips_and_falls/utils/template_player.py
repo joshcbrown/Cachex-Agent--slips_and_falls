@@ -1,46 +1,19 @@
-from greedy.greedy_tracker import GreedyTracker
-from negamaxs.nm_tracker import NegamaxTracker
-from transtbl.transtbl_tracker import TranstblTracker
-from utils.helper_functions import move_to_action
+from slips_and_falls.final_tracker import FinalTracker
+from slips_and_falls.utils.helper_functions import move_to_action
+from slips_and_falls.utils.heuristics import longest_edge_branch
 from random import randint, seed
 from functools import partial
 from time import perf_counter as timer
-from utils.heuristics import longest_edge_branch
 
 _ACTION_PLACE = "PLACE"
 
 
 class TemplatePlayer:
     def __init__(self, player, n, ptype: str, pname: str):
-        self.player = player
-        self.n = n
+        self.tracking_board = FinalTracker(player, self.evaluate, n)
+        self.get_move = self.tracking_board.get_transtbl_move
         self.ptype = ptype
         self.pname = pname
-        if ptype == "greedy":
-            seed(1)
-            self.tracking_board = GreedyTracker(player, self.evaluate, n)
-            self.get_move = self.tracking_board.get_greedy_move
-        elif ptype == "negamax":
-            self.tracking_board = NegamaxTracker(player, self.evaluate, n)
-            self.get_move = partial(
-                self.tracking_board.get_negamax_move
-            )
-        elif ptype == "ab":
-            self.tracking_board = NegamaxTracker(player, self.evaluate, n)
-            self.get_move = partial(
-                self.tracking_board.get_negamax_move, prune=True
-            )
-        elif ptype == "within2":
-            self.tracking_board = NegamaxTracker(player, self.evaluate, n)
-            self.get_move = partial(
-                self.tracking_board.get_negamax_move, prune=True, within2=True
-            )
-        elif ptype == "transtbl":
-            self.tracking_board = TranstblTracker(player, self.evaluate, n)
-            self.get_move = self.tracking_board.get_transtbl_move
-        else:
-            print(f"invalid player type: {ptype}")
-            exit()
 
     # default to random eval, overriden in subclasses
     def evaluate(self, player):
@@ -54,11 +27,6 @@ class TemplatePlayer:
         time = timer()
         choice = self.get_move()
         self.tracking_board.total_time += timer() - time
-        # if self.ptype != "greedy":
-        #     print(f"{self.ptype} evals: {self.tracking_board.evaluations}")
-        #     print(f"{self.ptype} timer: {self.tracking_board.total_time}\n")
-        #     if self.ptype == "transtbl":
-        #         print(self.tracking_board.state_count())
         return move_to_action(choice)
 
     def turn(self, player, action):

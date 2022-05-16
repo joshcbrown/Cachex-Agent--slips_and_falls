@@ -22,7 +22,7 @@ def test(options, p1, p2):
     p2_blue_wins = np.zeros(num_sizes, dtype=np.int)
     p2_red_wins = np.zeros(num_sizes, dtype=np.int)
     p1_blue_wins = np.zeros(num_sizes, dtype=np.int)
-    csv_str = f'{options.player1_loc[0]}_vs_{options.player2_loc[0]}_{datetime.now().strftime("%H:%M:%S")}.csv'
+    csv_str = f'stats/{options.player1_loc[0]}_vs_{options.player2_loc[0]}_{datetime.now().strftime("%H:%M:%S")}.csv'
     for row, n in enumerate(board_sizes):
         for i in range(options.testing_rounds):
             result1 = play(
